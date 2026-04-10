@@ -1,12 +1,71 @@
 import re
 
+from mptt.models import MPTTModel, TreeForeignKey
+
 from django.db import models
 from django.urls import reverse
 from django.template.loader import get_template
 from django.template import TemplateDoesNotExist
 
 
-class Section(models.Model):
+class GetChildInstanceMixin:
+    """
+    Mixin for base model classes.
+    """
+    def get_child_instance(self):
+        """
+        Return the instance of the child model class if possible. None otherwise.
+        """
+        for rel in self._meta.related_objects:
+            if isinstance(rel, models.OneToOneRel) and rel.remote_field.parent_link:
+                try:
+                    return getattr(self, rel.get_accessor_name())
+                except rel.related_model.DoesNotExist:
+                    continue
+        return None
+
+    def get_child_instance_or_self(self):
+        """
+        Return the instance of the child model class if possible. Return self
+        otherwise.
+        """
+        return self.get_child_instance() or self
+
+
+class HTMLMixin(GetChildInstanceMixin):
+    """
+    A mixin that provides a method to render the model instance as HTML using a
+    template.
+    """
+    base_type_name = None
+
+    def get_template_name(self):
+        """
+        Return the template to use for this model.
+        By default the template name is the class name as snake case.
+        """
+        cls = self.__class__
+        template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
+        return f'{cls.base_type_name}/{template_name}.html'
+
+    def render(self):
+        """
+        Render the model instance using its template and return the rendered HTML.
+        """
+        template = get_template(self.get_template_name())
+        return template.render({self.base_type_name: self})
+
+    @property
+    def html(self):
+        """
+        Return the rendered HTML for this model instance.
+        This property should not be overwritten by child classes. It just calls
+        the render method, but tries to call the childs version of it.
+        """
+        return getattr(self.get_child_instance_or_self(), 'render')()
+
+
+class Section(HTMLMixin, models.Model):
     """
     A base model for content sections that can be added to pages.
 
@@ -15,45 +74,19 @@ class Section(models.Model):
     but provides a common interface and template resolution logic for all
     section types.
     """
+    base_type_name = 'section'
 
     def __str__(self):
         # Get all reverse one-to-one relations and determine which child class
         # this instance belongs to.
-        for rel in self._meta.related_objects:
-            if isinstance(rel, models.OneToOneRel):
-                try:
-                    child_instance = getattr(self, rel.get_accessor_name())
-                    return f"{child_instance.__class__.__name__}: {child_instance}"
-                except rel.related_model.DoesNotExist:
-                    continue
-        # If no child instance is found, return a generic string representation.
-        return f"{self.__class__.__name__} (ID: {self.id})"
-
-    @classmethod
-    def get_template(cls):
-        """
-        Return the template to use for this section.
-
-        Look for a template named like the class name as snake case. If not
-        found, raise a TemplateDoesNotExist error.
-        """
-        template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
-        try:
-            get_template(f'sections/{template_name}.html')
-        except TemplateDoesNotExist:
-            raise
+        child_instance = self.get_child_instance()
+        if child_instance:
+            return f"{child_instance.__class__.__name__}: {child_instance}"
         else:
-            return f'sections/{template_name}.html'
-
-    def render(self):
-        """
-        Render the section using its template and return the rendered HTML.
-        """
-        template = get_template(self.get_template())
-        return template.render({'section': self})
+            super().__str__()
 
 
-class Page(models.Model):
+class Page(MPTTModel, HTMLMixin):
     """
     A model holding everything to render a simple web page:
     - a slug for the URL for the page
@@ -61,17 +94,17 @@ class Page(models.Model):
     - sections to render the content of the page
     - a routine to get the template to render the page
     """
+    base_type_name = 'page'
+
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
-    parent = models.ForeignKey(
+    parent = TreeForeignKey(
         "self",
         null=True,
         blank=True,
         related_name="children",
         on_delete=models.SET_NULL,
     )
-    order = models.IntegerField(blank=True)
-    ordering = models.CharField(max_length=255, blank=True, unique=True)
     sections = models.ManyToManyField(
         Section,
         through="PageSection",
@@ -79,32 +112,8 @@ class Page(models.Model):
         blank=True,
     )
 
-    class Meta:
-        ordering = ["ordering"]
-        unique_together = ("parent", "order")
-
     def __str__(self):
         return self.title
-
-    @property
-    def ancestors(self):
-        """
-        Return a list of ancestor pages, starting with the top level parent.
-        """
-        ancestors = []
-        page = self
-        while page.parent:
-            ancestors.append(page.parent)
-            page = page.parent
-        return list(reversed(ancestors))
-
-    @property
-    def level(self):
-        """
-        Return the level of this page in the page hierarchy, starting with 0
-        for top level pages.
-        """
-        return len(re.findall(r'-', self.ordering))
 
     def get_absolute_url(self):
         return reverse("page", kwargs={"slug": self.slug})
@@ -128,6 +137,8 @@ class Page(models.Model):
         else:
             return f'pages/{self.slug}.html'
 
+    # FIXME: Something like this might come with the mttp base model. So this
+    # might be redundant.
     @property
     def base_page(self):
         """
