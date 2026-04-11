@@ -10,8 +10,7 @@ def set_index_on_adding(sender, instance, **kwargs):
     """
     # Ensure order is a valid integer
     if instance.index is None or instance.index == '':
-        page_sections = PageSection.objects.filter(page=instance.page)
-        instance.add_item(page_sections)
+        instance.add_item()
 
 
 pre_save.connect(set_index_on_adding, sender=PageSection)
@@ -26,8 +25,7 @@ def update_indexes_on_deleting(sender, instance, **kwargs):
     Reorders remaining sections for the same page after deletion.
     """
     # Reorder remaining sections for this page
-    remaining_sections = PageSection.objects.filter(page=instance.page)
-    instance.delete_item(remaining_sections)
+    instance.delete_item()
 
 
 post_delete.connect(update_indexes_on_deleting, sender=PageSection)

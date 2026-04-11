@@ -172,23 +172,34 @@ class OrderedRelationMixin:
     moving an item.
     """
 
-    def delete_item(self, items):
+    def _get_ordered_items(self):
+        if hasattr(self, 'page'):
+            kwargs = {'page': self.page}
+        else:
+            kwargs = {'region': self.region}
+        return type(self).objects.filter(**kwargs)
+
+    def delete_item(self):
         """
         Decrease index by one for all following items. Run this method after
         items was deleted.
         """
+        items = self._get_ordered_items()
         for item in items.filter(index__gt=self.index):
             item.index -= 1
             item.save()
 
-    def add_item(self, items):
+    def add_item(self):
         """
         Set max index + 1 for item. Run this method before item was saved.
         """
+        items = self._get_ordered_items()
         max_index = items.aggregate(models.Max('index'))['index__max'] or 0
         self.index = max_index + 1
 
-    def move_up_or_down(self, items, operation):
+    def move_up_or_down(self, operation):
+        items = self._get_ordered_items()
+
         index = self.index
         other_item = items.get(index=operation(index))
         self.index = other_item.index = None
@@ -200,14 +211,14 @@ class OrderedRelationMixin:
         other_item.index = index
         other_item.save()
 
-    def move_item_up(self, items):
+    def move_item_up(self):
         """
         Switch index with the index of the preceding item. Since the index field
         is unique we firstly unset the index for both items.
         """
         self.move_up_or_down(items, lambda i: i - 1)
 
-    def move_item_down(self, items):
+    def move_item_down(self):
         """
         Switch index with the index of the following item. Since the index field
         is unique we firstly unset the index for both items.
