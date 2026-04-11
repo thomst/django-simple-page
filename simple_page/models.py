@@ -37,23 +37,41 @@ class HTMLMixin(GetChildInstanceMixin):
     A mixin that provides a method to render the model instance as HTML using a
     template.
     """
-    base_type_name = None
+    template_name = None
+
+    def _get_base_type_name(self):
+        """
+        Return the base type name for this model. This is used to determine the
+        template folder and the context variable name when rendering the template.
+        """
+        if isinstance(self, Page):
+            return 'page'
+        elif isinstance(self, Region):
+            return 'region'
+        elif isinstance(self, Section):
+            return 'section'
 
     def get_template_name(self):
         """
         Return the template to use for this model.
         By default the template name is the class name as snake case.
+        This method can be customized by child classes.
         """
-        cls = self.__class__
-        template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
-        return f'{cls.base_type_name}/{template_name}.html'
+        if self.template_name:
+            return self.template_name
+        else:
+            # Cast class name to snake case for the template file name.
+            cls = self.__class__
+            template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
+            return f'{self._get_base_type_name()}s/{template_name}.html'
 
     def render(self):
         """
         Render the model instance using its template and return the rendered HTML.
+        This method can be customized by child classes.
         """
         template = get_template(self.get_template_name())
-        return template.render({self.base_type_name: self})
+        return template.render({self._get_base_type_name(): self})
 
     @property
     def html(self):
@@ -65,36 +83,50 @@ class HTMLMixin(GetChildInstanceMixin):
         return getattr(self.get_child_instance_or_self(), 'render')()
 
 
-class Section(HTMLMixin, models.Model):
+class ShowChildClassNameMixin(GetChildInstanceMixin):
     """
-    A base model for content sections that can be added to pages.
-
-    This model is designed to be extended by specific content types, such as
-    text sections or image sections. It does not contain any fields itself,
-    but provides a common interface and template resolution logic for all
-    section types.
+    A mixin that provides a __str__ method that shows the child class name if
+    possible. This is useful for the admin interface to distinguish between
+    different section types.
     """
-    base_type_name = 'section'
-
     def __str__(self):
-        # Get all reverse one-to-one relations and determine which child class
-        # this instance belongs to.
         child_instance = self.get_child_instance()
         if child_instance:
             return f"{child_instance.__class__.__name__}: {child_instance}"
         else:
-            super().__str__()
+            return super().__str__()
 
 
-class Page(MPTTModel, HTMLMixin):
+class Section(HTMLMixin, ShowChildClassNameMixin, models.Model):
+    """
+    A base model for content sections that can be added to pages.
+
+    This model is ment as a base model for all section types, which can be any
+    content type you want to see on your website. It does not contain any fields
+    itself, but provides a common interface for rendering the section as HTML
+    which can be customized by child classes.
+    """
+
+
+class Region(HTMLMixin, ShowChildClassNameMixin, models.Model):
+    """
+    A model for regions that can be added to pages.
+
+    As a page a region is a container for sections to be rendered. This model is
+    ment as a base model for specific region types like main oder sidebar. It
+    does not contain any fields itself, but provides a common interface for
+    rendering the region as HTML which can be customized by child classes.
+    """
+
+
+class Page(MPTTModel, ShowChildClassNameMixin, HTMLMixin):
     """
     A model holding everything to render a simple web page:
     - a slug for the URL for the page
     - the base page to create navigation menus
-    - sections to render the content of the page
+    - regions and sections to render the content of the page
     - a routine to get the template to render the page
     """
-    base_type_name = 'page'
 
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
@@ -137,27 +169,97 @@ class Page(MPTTModel, HTMLMixin):
         else:
             return f'pages/{self.slug}.html'
 
-    # FIXME: Something like this might come with the mttp base model. So this
-    # might be redundant.
-    @property
-    def base_page(self):
+
+class OrderedRelationMixin:
+    """
+    This mixin provieds some logic to work with an ordered many-to-many
+    relation. Such as recalculating the ordering when adding, removing or
+    moving an item.
+    """
+    index = models.PositiveSmallIntegerField(blank=True)
+
+    def delete_item(self, items):
         """
-        Return the top-level parent page for this page.
-
-        If this page has no parent, return itself. The base page allows you to
-        create navigation menus based on the top level page by looping through
-        its children.
+        Decrease index by one for all following items. Run this method after
+        items was deleted.
         """
-        if self.parent:
-            return self.parent.base_page
-        else:
-            return self
+        for item in items.filter(index__gt=self.index):
+            item.index -= 1
+            item.save()
+
+    def add_item(self, items):
+        """
+        Set max index + 1 for item. Run this method before item was saved.
+        """
+        max_index = items.aggregate(models.Max('index'))
+        self.index = max_index + 1
+
+    def move_up_or_down(self, items, operation):
+        index = self.index
+        other_item = items.get(index=operation(index))
+        self.index = other_item.index = None
+        self.save()
+        other_item.save()
+
+        self.index = operation(index)
+        self.save()
+        other_item.index = index
+        other_item.save()
+
+    def move_item_up(self, items):
+        """
+        Switch index with the index of the preceding item. Since the index field
+        is unique we firstly unset the index for both items.
+        """
+        self.move_up_or_down(items, lambda i: i - 1)
+
+    def move_item_down(self, items):
+        """
+        Switch index with the index of the following item. Since the index field
+        is unique we firstly unset the index for both items.
+        """
+        self.move_up_or_down(items, lambda i: i + 1)
 
 
-class PageSection(models.Model):
+class RegionSection(OrderedRelationMixin, models.Model):
+    """
+    Ordered many-to-many relation between regions and sections.
+    """
+
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ["region__id", "order"]
+        unique_together = (("region", "section"), ("region","order"))
+
+    def __str__(self):
+        return f"{self.region} — {self.section} ({self.order})"
+
+
+class PageRegion(OrderedRelationMixin, models.Model):
+    """
+    Ordered many-to-many relation between pages and regions.
+    """
+
+    page = models.ForeignKey(Page, on_delete=models.CASCADE)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ["page__id", "order"]
+        unique_together = (("page", "region"), ("page","order"))
+
+    def __str__(self):
+        return f"{self.page} — {self.region} ({self.order})"
+
+
+class PageSection(OrderedRelationMixin, models.Model):
+    """
+    Ordered many-to-many relation between pages and sections.
+    """
+
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    order = models.IntegerField(blank=True)
 
     class Meta:
         ordering = ["page__id", "order"]
