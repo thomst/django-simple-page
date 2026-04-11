@@ -6,6 +6,7 @@ from django.db import models
 from django.urls import reverse
 from django.template.loader import get_template
 from django.template import TemplateDoesNotExist
+from django.db.models import F, Case, IntegerField, When, Value
 
 
 class GetChildInstanceMixin:
@@ -199,29 +200,24 @@ class OrderedRelationMixin:
 
     def move_up_or_down(self, operation):
         items = self._get_ordered_items()
-
         index = self.index
-        other_item = items.get(index=operation(index))
-        self.index = other_item.index = None
-        self.save()
-        other_item.save()
 
-        self.index = operation(index)
-        self.save()
-        other_item.index = index
-        other_item.save()
+        items.filter(index__in=[index, operation(index)]).update(
+            index=Case(
+                When(index=index, then=Value(operation(index))),
+                When(index=operation(index), then=Value(index))
+            )
+        )
 
     def move_item_up(self):
         """
-        Switch index with the index of the preceding item. Since the index field
-        is unique we firstly unset the index for both items.
+        Switch index with the index of the preceding item.
         """
         self.move_up_or_down(items, lambda i: i - 1)
 
     def move_item_down(self):
         """
-        Switch index with the index of the following item. Since the index field
-        is unique we firstly unset the index for both items.
+        Switch index with the index of the following item.
         """
         self.move_up_or_down(items, lambda i: i + 1)
 
