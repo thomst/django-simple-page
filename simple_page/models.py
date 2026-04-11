@@ -17,19 +17,14 @@ class GetChildInstanceMixin:
         Return the instance of the child model class if possible. None otherwise.
         """
         for rel in self._meta.related_objects:
-            if isinstance(rel, models.OneToOneRel) and rel.remote_field.parent_link:
+            # FIXME: Is this safe? Using parent_link on the remote field seems
+            # not to work?!
+            if isinstance(rel, models.OneToOneRel):
                 try:
                     return getattr(self, rel.get_accessor_name())
                 except rel.related_model.DoesNotExist:
                     continue
         return None
-
-    def get_child_instance_or_self(self):
-        """
-        Return the instance of the child model class if possible. Return self
-        otherwise.
-        """
-        return self.get_child_instance() or self
 
 
 class HTMLMixin(GetChildInstanceMixin):
@@ -80,7 +75,7 @@ class HTMLMixin(GetChildInstanceMixin):
         This property should not be overwritten by child classes. It just calls
         the render method, but tries to call the childs version of it.
         """
-        return getattr(self.get_child_instance_or_self(), 'render')()
+        return getattr(self.get_child_instance() or self, 'render')()
 
 
 class ShowChildClassNameMixin(GetChildInstanceMixin):
@@ -176,7 +171,6 @@ class OrderedRelationMixin:
     relation. Such as recalculating the ordering when adding, removing or
     moving an item.
     """
-    index = models.PositiveSmallIntegerField(blank=True)
 
     def delete_item(self, items):
         """
@@ -191,7 +185,7 @@ class OrderedRelationMixin:
         """
         Set max index + 1 for item. Run this method before item was saved.
         """
-        max_index = items.aggregate(models.Max('index'))
+        max_index = items.aggregate(models.Max('index'))['index__max'] or 0
         self.index = max_index + 1
 
     def move_up_or_down(self, items, operation):
@@ -228,13 +222,14 @@ class RegionSection(OrderedRelationMixin, models.Model):
 
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    index = models.PositiveSmallIntegerField(blank=True)
 
     class Meta:
-        ordering = ["region__id", "order"]
-        unique_together = (("region", "section"), ("region","order"))
+        ordering = ["region__id", "index"]
+        unique_together = (("region", "section"), ("region","index"))
 
     def __str__(self):
-        return f"{self.region} — {self.section} ({self.order})"
+        return f"{self.region} — {self.section} ({self.index})"
 
 
 class PageRegion(OrderedRelationMixin, models.Model):
@@ -244,13 +239,14 @@ class PageRegion(OrderedRelationMixin, models.Model):
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
+    index = models.PositiveSmallIntegerField(blank=True)
 
     class Meta:
-        ordering = ["page__id", "order"]
-        unique_together = (("page", "region"), ("page","order"))
+        ordering = ["page__id", "index"]
+        unique_together = (("page", "region"), ("page","index"))
 
     def __str__(self):
-        return f"{self.page} — {self.region} ({self.order})"
+        return f"{self.page} — {self.region} ({self.index})"
 
 
 class PageSection(OrderedRelationMixin, models.Model):
@@ -260,10 +256,11 @@ class PageSection(OrderedRelationMixin, models.Model):
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    index = models.PositiveSmallIntegerField(blank=True)
 
     class Meta:
-        ordering = ["page__id", "order"]
-        unique_together = (("page", "section"), ("page","order"))
+        ordering = ["page__id", "index"]
+        unique_together = (("page", "section"), ("page","index"))
 
     def __str__(self):
-        return f"{self.page} — {self.section} ({self.order})"
+        return f"{self.page} — {self.section} ({self.index})"
