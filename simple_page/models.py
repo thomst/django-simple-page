@@ -11,11 +11,13 @@ from django.db.models import F, Case, IntegerField, When, Value
 
 class GetChildInstanceMixin:
     """
-    Mixin for base model classes.
+    Mixin for base model classes. Providing a method to get the child's
+    instance.
     """
     def get_child_instance(self):
         """
-        Return the instance of the child model class if possible. None otherwise.
+        Return the instance of the child model class if possible. None
+        otherwise.
         """
         for rel in self._meta.related_objects:
             # FIXME: Is this safe? Using parent_link on the remote field seems
@@ -49,9 +51,9 @@ class HTMLMixin(GetChildInstanceMixin):
 
     def get_template_name(self):
         """
-        Return the template to use for this model.
-        By default the template name is the class name as snake case.
-        This method can be customized by child classes.
+        Return the template to use for this model. If template_name is set it
+        will be used. If not the template name will be the class name as snake
+        case. This method can be customized by child classes.
         """
         if self.template_name:
             return self.template_name
@@ -63,8 +65,8 @@ class HTMLMixin(GetChildInstanceMixin):
 
     def render(self):
         """
-        Render the model instance using its template and return the rendered HTML.
-        This method can be customized by child classes.
+        Render the model instance using its template and return the rendered
+        HTML. This method can be customized by child classes.
         """
         template = get_template(self.get_template_name())
         return template.render({self._get_base_type_name(): self})
