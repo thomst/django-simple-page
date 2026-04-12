@@ -202,24 +202,26 @@ class OrderedRelationMixin:
         items = self._get_ordered_items()
         index = self.index
 
-        items.filter(index__in=[index, operation(index)]).update(
-            index=Case(
-                When(index=index, then=Value(operation(index))),
-                When(index=operation(index), then=Value(index))
-            )
-        )
+        # Mysql does not allow us to switch indexes in one update statement
+        # without unique constraint violation. So we set the indexes to its
+        # negative value first.
+        items.filter(index__in=[index, operation(index)]).update(index=-F('index'))
+        items.filter(index__in=[-index, -operation(index)]).update(index=Case(
+            When(index=-index, then=Value(operation(index))),
+            When(index=-operation(index), then=Value(index)),
+        ))
 
     def move_item_up(self):
         """
         Switch index with the index of the preceding item.
         """
-        self.move_up_or_down(items, lambda i: i - 1)
+        self.move_up_or_down(lambda i: i - 1)
 
     def move_item_down(self):
         """
         Switch index with the index of the following item.
         """
-        self.move_up_or_down(items, lambda i: i + 1)
+        self.move_up_or_down(lambda i: i + 1)
 
 
 class RegionSection(OrderedRelationMixin, models.Model):
@@ -229,7 +231,7 @@ class RegionSection(OrderedRelationMixin, models.Model):
 
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    index = models.PositiveSmallIntegerField(blank=True)
+    index = models.SmallIntegerField(blank=True)
 
     class Meta:
         ordering = ["region__id", "index"]
@@ -246,7 +248,7 @@ class PageRegion(OrderedRelationMixin, models.Model):
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
-    index = models.PositiveSmallIntegerField(blank=True)
+    index = models.SmallIntegerField(blank=True)
 
     class Meta:
         ordering = ["page__id", "index"]
@@ -263,7 +265,7 @@ class PageSection(OrderedRelationMixin, models.Model):
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    index = models.PositiveSmallIntegerField(blank=True)
+    index = models.SmallIntegerField(blank=True)
 
     class Meta:
         ordering = ["page__id", "index"]
