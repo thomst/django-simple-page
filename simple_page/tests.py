@@ -74,15 +74,10 @@ class OrderedRelationTests(TestCase):
     def setUp(self):
         self.page_sections = list()
         page = Page.objects.create(title='Home', slug='home')
-        self.page = page
         for i in range(3):
             section = Section.objects.create()
-            self.page_sections.append(
-                PageSection.objects.create(page=page, section=section)
-            )
-        # self.section1 = Section.objects.create()
-        # self.section2 = Section.objects.create()
-        # self.section3 = Section.objects.create()
+            page_section = PageSection.objects.create(page=page, section=section)
+            self.page_sections.append(page_section)
 
     def test_add_item_assigns_next_index(self):
         # Creating page-sections calls add_item method via pre-save signal. So
