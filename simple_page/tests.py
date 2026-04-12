@@ -42,7 +42,7 @@ class TemplateDirMixin:
         )
 
 
-class MixinModelTests(TemplateDirMixin, TestCase):
+class SectionTests(TemplateDirMixin, TestCase):
     def test_get_child_instance_returns_none_for_base_section(self):
         section = Section.objects.create()
         self.assertIsNone(section.get_child_instance())
@@ -64,66 +64,43 @@ class MixinModelTests(TemplateDirMixin, TestCase):
             self.assertEqual(section.html, section.render())
 
 
-class PageModelTests(TemplateDirMixin, TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        with open(os.path.join(cls.templates_dir, 'pages', 'home.html'), 'w') as handle:
-            handle.write('Home page: {{ page.slug }}')
-
+class PageTests(TemplateDirMixin, TestCase):
     def test_get_absolute_url(self):
         page = Page.objects.create(title='Home', slug='home')
         self.assertEqual(page.get_absolute_url(), reverse('page', kwargs={'slug': 'home'}))
 
 
-class OrderedRelationMixinTests(TestCase):
+class OrderedRelationTests(TestCase):
     def setUp(self):
-        self.page = Page.objects.create(title='Home', slug='home')
-        self.section1 = Section.objects.create()
-        self.section2 = Section.objects.create()
-        self.section3 = Section.objects.create()
+        self.page_sections = list()
+        page = Page.objects.create(title='Home', slug='home')
+        self.page = page
+        for i in range(3):
+            section = Section.objects.create()
+            self.page_sections.append(
+                PageSection.objects.create(page=page, section=section)
+            )
+        # self.section1 = Section.objects.create()
+        # self.section2 = Section.objects.create()
+        # self.section3 = Section.objects.create()
 
     def test_add_item_assigns_next_index(self):
-        page_section = PageSection(page=self.page, section=self.section1)
-        page_section.add_item()
-        page_section.save()
-        self.assertEqual(page_section.index, 1)
-
-        second_section = PageSection(page=self.page, section=self.section2)
-        second_section.add_item()
-        second_section.save()
-        self.assertEqual(second_section.index, 2)
+        # Creating page-sections calls add_item method via pre-save signal. So
+        # they indexes should be set properly.
+        self.assertEqual([ps.index for ps in self.page_sections], [1, 2, 3])
 
     def test_delete_item_decrements_following_indexes(self):
-        first = PageSection.objects.create(page=self.page, section=self.section1, index=1)
-        second = PageSection.objects.create(page=self.page, section=self.section2, index=2)
-        third = PageSection.objects.create(page=self.page, section=self.section3, index=3)
-        first.delete() # This calls first.delete_item() via the signal handler.
-        second.refresh_from_db()
-        third.refresh_from_db()
-        self.assertEqual(second.index, 1)
-        self.assertEqual(third.index, 2)
+        section_page = self.page_sections.pop(0)
+        section_page.delete() # This calls delete_item method via post-delete signal handler.
+        [ps.refresh_from_db() for ps in self.page_sections]
+        self.assertEqual([ps.index for ps in self.page_sections], [1, 2])
 
     def test_move_item_up_switch_indexes_with_preceding_item(self):
-        first = PageSection.objects.create(page=self.page, section=self.section1, index=1)
-        second = PageSection.objects.create(page=self.page, section=self.section2, index=2)
-        third = PageSection.objects.create(page=self.page, section=self.section3, index=3)
-        second.move_item_up()
-        first.refresh_from_db()
-        second.refresh_from_db()
-        third.refresh_from_db()
-        self.assertEqual(first.index, 2)
-        self.assertEqual(second.index, 1)
-        self.assertEqual(third.index, 3)
+        self.page_sections[1].move_item_up()
+        [ps.refresh_from_db() for ps in self.page_sections]
+        self.assertEqual([ps.index for ps in self.page_sections], [2, 1, 3])
 
     def test_move_item_down_switch_indexes_with_following_item(self):
-        first = PageSection.objects.create(page=self.page, section=self.section1, index=1)
-        second = PageSection.objects.create(page=self.page, section=self.section2, index=2)
-        third = PageSection.objects.create(page=self.page, section=self.section3, index=3)
-        second.move_item_down()
-        first.refresh_from_db()
-        second.refresh_from_db()
-        third.refresh_from_db()
-        self.assertEqual(first.index, 1)
-        self.assertEqual(second.index, 3)
-        self.assertEqual(third.index, 2)
+        self.page_sections[1].move_item_down()
+        [ps.refresh_from_db() for ps in self.page_sections]
+        self.assertEqual([ps.index for ps in self.page_sections], [1, 3, 2])
