@@ -148,25 +148,6 @@ class Page(MPTTModel, ShowChildClassNameMixin, HTMLMixin):
     def get_absolute_url(self):
         return reverse("page", kwargs={"slug": self.slug})
 
-    def get_template(self):
-        """
-        Return the template to use for this page.
-
-        First check if there is a template specific to this page's slug, then
-        fall back to the default template.
-        """
-        try:
-            get_template(f'pages/{self.slug}.html')
-        except TemplateDoesNotExist:
-            try:
-                get_template('pages/page.html')
-            except TemplateDoesNotExist:
-                raise
-            else:
-                return 'pages/page.html'
-        else:
-            return f'pages/{self.slug}.html'
-
 
 class OrderedRelationMixin:
     """
