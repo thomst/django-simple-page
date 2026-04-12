@@ -1,11 +1,13 @@
-__pycache__/
-.python-version
-db.sqlite3*
 /.coverage
 /.coveralls.yml
+/.python-version
 /*.sh
+/django_simple_page.egg-info/
 /build/
 /dist/
 /.tox/
 /.vscode/
+db.sqlite3*
 my.cnf
+media/
+__pycache__/
