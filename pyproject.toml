@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-simple-page"
+authors = [{name = "Thomas Leichtfuß", email = "thomas.leichtfuss@posteo.de"}]
+description = ""
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["django", "django-admin", "cms", "website"]
+license = { text = "BSD-3-Clause"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = [
+    "Django>=3.2",
+    "django-mptt",
+    "Pillow",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/thomst/django-simple-page"
+Repository = "https://github.com/thomst/django-simple-page"
+Documentation = "https://github.com/thomst/django-simple-page#readme"
+
+[tool.setuptools]
+packages = ["simple_page"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+simple_page = ["templates/**"]
+
+[tool.setuptools.dynamic]
+version = {attr = "simple_page.__version__.__version__"}
