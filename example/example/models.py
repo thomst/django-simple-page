@@ -33,4 +33,4 @@ class ImageSection(Section):
 
 
 class MainPage(Page):
-    REGIONS = ['main', 'sidebar']
+    REGIONS = [('main', 'Main Region'), ('sidebar', 'Sidebar')]

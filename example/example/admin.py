@@ -1,6 +1,6 @@
 from django.contrib import admin
 from simple_page.admin import BasePageAdmin
-from simple_page.admin import PageSectionInline
+from simple_page.admin import BaseRegionInline
 from .models import TextSection
 from .models import ImageSection
 from .models import MainPage
