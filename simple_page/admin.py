@@ -11,14 +11,27 @@ class PageSectionInline(admin.TabularInline):
     fields = ("section", "index")
 
 
-@admin.register(Page)
-class PageAdmin(DraggableMPTTAdmin):
-    list_display = ("tree_actions", "indented_title", "slug")
-    list_display_links=('indented_title',)
-    list_filter = ("parent",)
+class BasePageAdmin(admin.ModelAdmin):
+    list_display = ("title", "slug", "parent")
     search_fields = ("title", "slug")
     prepopulated_fields = {"slug": ("title",)}
-    inlines = (PageSectionInline,)
+    list_filter = ("parent",)
+
+    def get_regions(self, obj):
+        child_instance = Page.objects.get_subclass(id=obj.id)
+        return getattr(child_instance, 'REGIONS', None) or ['main']
+
+    def get_inlines(self, request, obj):
+        regions = self.get_regions(obj)
+        # Create PageSectionInline for each region.
+        print(regions)
+        return [PageSectionInline for r in regions]
+
+
+@admin.register(Page)
+class PageAdmin(BasePageAdmin, DraggableMPTTAdmin):
+    list_display = ("tree_actions", "indented_title", "slug")
+    list_display_links=('indented_title',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

@@ -33,5 +33,4 @@ class ImageSection(Section):
 
 
 class MainPage(Page):
-    def method(self):
-        print('hello')
+    REGIONS = ['main', 'sidebar']
