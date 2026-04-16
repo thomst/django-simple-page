@@ -33,6 +33,7 @@ classifiers = [
 dependencies = [
     "Django>=3.2",
     "django-mptt",
+    "django-model-utils",
     "reorder_items_widget",
 ]
 dynamic = ["version"]
