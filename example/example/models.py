@@ -1,6 +1,7 @@
 from django.db import models
 
-from simple_page.models import Section, Region, Page
+from simple_page.models import Section
+from simple_page.models import Page
 
 
 class TextSection(Section):
@@ -31,17 +32,6 @@ class ImageSection(Section):
         return self.title
 
 
-class MainRegion(Region):
-    """Main region of a page."""
-
-
-class LeftSidebar(Region):
-    """Left sidebar region of a page."""
-
-
-class MyPage(Page):
+class MainPage(Page):
     def method(self):
         print('hello')
-
-    class Meta:
-        proxy = True

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from mptt.admin import DraggableMPTTAdmin
-from .models import Page, Region, PageSection, PageRegion, RegionSection
+from .models import Page, PageSection
 from .forms import ReorderRelationForm
 
 
@@ -11,28 +11,15 @@ class PageSectionInline(admin.TabularInline):
     fields = ("section", "index")
 
 
-class PageRegionInline(admin.TabularInline):
-    form = ReorderRelationForm
-    model = PageRegion
-    extra = 1
-    fields = ("region", "index")
-
-
-class RegionSectionInline(admin.TabularInline):
-    form = ReorderRelationForm
-    model = RegionSection
-    extra = 1
-    fields = ("section", "index")
-
-
-class BasePageAdmin(DraggableMPTTAdmin):
+@admin.register(Page)
+class PageAdmin(DraggableMPTTAdmin):
     list_display = ("tree_actions", "indented_title", "slug")
     list_display_links=('indented_title',)
     list_filter = ("parent",)
     search_fields = ("title", "slug")
     prepopulated_fields = {"slug": ("title",)}
-    inlines = (PageSectionInline, PageRegionInline)
+    inlines = (PageSectionInline,)
 
-
-class BaseRegionAdmin(admin.ModelAdmin):
-    inlines = (RegionSectionInline,)
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_subclasses()

@@ -1,36 +1,30 @@
 import re
 
 from mptt.models import MPTTModel, TreeForeignKey
+from model_utils.managers import InheritanceManager
 
 from django.db import models
 from django.urls import reverse
 from django.template.loader import get_template
-from django.template import TemplateDoesNotExist
-from django.db.models import F, Case, IntegerField, When, Value
 
 
-class GetChildInstanceMixin:
+class ChildsStringMethodMixin:
     """
-    Mixin for base model classes. Providing a method to get the child's
-    instance.
+    A mixin that provides a __str__ method that shows the child class name if
+    possible. This is useful for the admin interface to distinguish between
+    different section types.
     """
-    def get_child_instance(self):
-        """
-        Return the instance of the child model class if possible. None
-        otherwise.
-        """
-        for rel in self._meta.related_objects:
-            # FIXME: Is this safe? Using parent_link on the remote field seems
-            # not to work?!
-            if isinstance(rel, models.OneToOneRel):
-                try:
-                    return getattr(self, rel.get_accessor_name())
-                except rel.related_model.DoesNotExist:
-                    continue
-        return None
+    def __str__(self):
+        child_self = self._meta.model.objects.get_subclass(id=self.id)
+        # There is no child? We do nothing here.
+        if child_self is self:
+            return super().__str__()
+        # Otherwise use the child's class name and its str representation.
+        else:
+            return f"{child_self.__class__.__name__}: {child_self}"
 
 
-class HTMLMixin(GetChildInstanceMixin):
+class HTMLMixin:
     """
     A mixin that provides a method to render the model instance as HTML using a
     template.
@@ -44,8 +38,6 @@ class HTMLMixin(GetChildInstanceMixin):
         """
         if isinstance(self, Page):
             return 'page'
-        elif isinstance(self, Region):
-            return 'region'
         elif isinstance(self, Section):
             return 'section'
 
@@ -71,31 +63,8 @@ class HTMLMixin(GetChildInstanceMixin):
         template = get_template(self.get_template_name())
         return template.render({self._get_base_type_name(): self})
 
-    @property
-    def html(self):
-        """
-        Return the rendered HTML for this model instance.
-        This property should not be overwritten by child classes. It just calls
-        the render method, but tries to call the childs version of it.
-        """
-        return getattr(self.get_child_instance() or self, 'render')()
 
-
-class ShowChildClassNameMixin(GetChildInstanceMixin):
-    """
-    A mixin that provides a __str__ method that shows the child class name if
-    possible. This is useful for the admin interface to distinguish between
-    different section types.
-    """
-    def __str__(self):
-        child_instance = self.get_child_instance()
-        if child_instance:
-            return f"{child_instance.__class__.__name__}: {child_instance}"
-        else:
-            return super().__str__()
-
-
-class Section(HTMLMixin, ShowChildClassNameMixin, models.Model):
+class Section(ChildsStringMethodMixin, HTMLMixin, models.Model):
     """
     A base model for content sections that can be added to pages.
 
@@ -104,20 +73,10 @@ class Section(HTMLMixin, ShowChildClassNameMixin, models.Model):
     itself, but provides a common interface for rendering the section as HTML
     which can be customized by child classes.
     """
+    objects = InheritanceManager()
 
 
-class Region(HTMLMixin, ShowChildClassNameMixin, models.Model):
-    """
-    A model for regions that can be added to pages.
-
-    As a page a region is a container for sections to be rendered. This model is
-    ment as a base model for specific region types like main oder sidebar. It
-    does not contain any fields itself, but provides a common interface for
-    rendering the region as HTML which can be customized by child classes.
-    """
-
-
-class Page(MPTTModel, ShowChildClassNameMixin, HTMLMixin):
+class Page(MPTTModel, ChildsStringMethodMixin, HTMLMixin):
     """
     A model holding everything to render a simple web page:
     - a slug for the URL for the page
@@ -125,6 +84,7 @@ class Page(MPTTModel, ShowChildClassNameMixin, HTMLMixin):
     - regions and sections to render the content of the page
     - a routine to get the template to render the page
     """
+    objects = InheritanceManager()
 
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
@@ -153,8 +113,7 @@ class OrderedRelationMixin:
     """
     Mixin to update indexes on deleting and adding items.
     """
-
-    def _get_items_set(self):
+    def _get_item_set(self):
         if hasattr(self, 'page'):
             kwargs = {'page': self.page}
         else:
@@ -166,7 +125,7 @@ class OrderedRelationMixin:
         Decrease index by one for all following items. Run this method after
         items was deleted.
         """
-        items = self._get_items_set()
+        items = self._get_item_set()
         for item in items.filter(index__gt=self.index):
             item.index -= 1
             item.save()
@@ -175,43 +134,9 @@ class OrderedRelationMixin:
         """
         Set max index + 1 for item. Run this method before item was saved.
         """
-        items = self._get_items_set()
+        items = self._get_item_set()
         max_index = items.aggregate(models.Max('index'))['index__max'] or 0
         self.index = max_index + 1
-
-
-class RegionSection(OrderedRelationMixin, models.Model):
-    """
-    Ordered many-to-many relation between regions and sections.
-    """
-
-    region = models.ForeignKey(Region, on_delete=models.CASCADE)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    index = models.SmallIntegerField(blank=True)
-
-    class Meta:
-        ordering = ["region__id", "index"]
-        unique_together = (("region", "section"), ("region","index"))
-
-    def __str__(self):
-        return f"{self.region} — {self.section} ({self.index})"
-
-
-class PageRegion(OrderedRelationMixin, models.Model):
-    """
-    Ordered many-to-many relation between pages and regions.
-    """
-
-    page = models.ForeignKey(Page, on_delete=models.CASCADE)
-    region = models.ForeignKey(Region, on_delete=models.CASCADE)
-    index = models.SmallIntegerField(blank=True)
-
-    class Meta:
-        ordering = ["page__id", "index"]
-        unique_together = (("page", "region"), ("page","index"))
-
-    def __str__(self):
-        return f"{self.page} — {self.region} ({self.index})"
 
 
 class PageSection(OrderedRelationMixin, models.Model):
@@ -225,7 +150,6 @@ class PageSection(OrderedRelationMixin, models.Model):
 
     class Meta:
         ordering = ["page__id", "index"]
-        unique_together = (("page", "section"), ("page","index"))
 
     def __str__(self):
-        return f"{self.page} — {self.section} ({self.index})"
+        return f"{self.section}"

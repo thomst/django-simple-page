@@ -7,4 +7,4 @@ class ReorderRelationForm(ModelForm):
     A ModelForm using the ReorderItemsWidget with an index field.
     """
     class Meta:
-        widgets={'index': ReorderItemsWidget()}
+        widgets = {'index': ReorderItemsWidget()}
