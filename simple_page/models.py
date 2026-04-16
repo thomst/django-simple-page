@@ -8,22 +8,6 @@ from django.urls import reverse
 from django.template.loader import get_template
 
 
-class ChildsStringMethodMixin:
-    """
-    A mixin that provides a __str__ method that shows the child class name if
-    possible. This is useful for the admin interface to distinguish between
-    different section types.
-    """
-    def __str__(self):
-        child_self = self._meta.model.objects.get_subclass(id=self.id)
-        # There is no child? We do nothing here.
-        if child_self is self:
-            return super().__str__()
-        # Otherwise use the child's class name and its str representation.
-        else:
-            return f"{child_self.__class__.__name__}: {child_self}"
-
-
 class HTMLMixin:
     """
     A mixin that provides a method to render the model instance as HTML using a
@@ -64,7 +48,7 @@ class HTMLMixin:
         return template.render({self._get_base_type_name(): self})
 
 
-class Section(ChildsStringMethodMixin, HTMLMixin, models.Model):
+class Section(HTMLMixin, models.Model):
     """
     A base model for content sections that can be added to pages.
 
@@ -75,8 +59,15 @@ class Section(ChildsStringMethodMixin, HTMLMixin, models.Model):
     """
     objects = InheritanceManager()
 
+    def __str__(self):
+        if type(self) is Section:
+            child_self = self._meta.model.objects.get_subclass(id=self.id)
+            return f"{child_self.__class__.__name__}: {child_self}"
+        else:
+            return super().__str__()
 
-class Page(MPTTModel, ChildsStringMethodMixin, HTMLMixin):
+
+class Page(MPTTModel, HTMLMixin):
     """
     A model holding everything to render a simple web page:
     - a slug for the URL for the page
@@ -103,7 +94,7 @@ class Page(MPTTModel, ChildsStringMethodMixin, HTMLMixin):
     )
 
     def __str__(self):
-        return self.title
+        return f'{self.__class__.__name__}: {self.title}'
 
     def get_absolute_url(self):
         return reverse("page", kwargs={"slug": self.slug})
