@@ -151,60 +151,33 @@ class Page(MPTTModel, ShowChildClassNameMixin, HTMLMixin):
 
 class OrderedRelationMixin:
     """
-    This mixin provieds some logic to work with an ordered many-to-many
-    relation. Such as recalculating the ordering when adding, removing or
-    moving an item.
+    Mixin to update indexes on deleting and adding items.
     """
 
-    def _get_ordered_items(self):
+    def _get_items_set(self):
         if hasattr(self, 'page'):
             kwargs = {'page': self.page}
         else:
             kwargs = {'region': self.region}
         return type(self).objects.filter(**kwargs)
 
-    def delete_item(self):
+    def update_indexes_on_deleting(self):
         """
         Decrease index by one for all following items. Run this method after
         items was deleted.
         """
-        items = self._get_ordered_items()
+        items = self._get_items_set()
         for item in items.filter(index__gt=self.index):
             item.index -= 1
             item.save()
 
-    def add_item(self):
+    def update_indexes_on_adding(self):
         """
         Set max index + 1 for item. Run this method before item was saved.
         """
-        items = self._get_ordered_items()
+        items = self._get_items_set()
         max_index = items.aggregate(models.Max('index'))['index__max'] or 0
         self.index = max_index + 1
-
-    def move_up_or_down(self, operation):
-        items = self._get_ordered_items()
-        index = self.index
-
-        # Mysql does not allow us to switch indexes in one update statement
-        # without unique constraint violation. So we set the indexes to its
-        # negative value first.
-        items.filter(index__in=[index, operation(index)]).update(index=-F('index'))
-        items.filter(index__in=[-index, -operation(index)]).update(index=Case(
-            When(index=-index, then=Value(operation(index))),
-            When(index=-operation(index), then=Value(index)),
-        ))
-
-    def move_item_up(self):
-        """
-        Switch index with the index of the preceding item.
-        """
-        self.move_up_or_down(lambda i: i - 1)
-
-    def move_item_down(self):
-        """
-        Switch index with the index of the following item.
-        """
-        self.move_up_or_down(lambda i: i + 1)
 
 
 class RegionSection(OrderedRelationMixin, models.Model):

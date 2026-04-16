@@ -89,13 +89,3 @@ class OrderedRelationTests(TestCase):
         section_page.delete() # This calls delete_item method via post-delete signal handler.
         [ps.refresh_from_db() for ps in self.page_sections]
         self.assertEqual([ps.index for ps in self.page_sections], [1, 2])
-
-    def test_move_item_up_switch_indexes_with_preceding_item(self):
-        self.page_sections[1].move_item_up()
-        [ps.refresh_from_db() for ps in self.page_sections]
-        self.assertEqual([ps.index for ps in self.page_sections], [2, 1, 3])
-
-    def test_move_item_down_switch_indexes_with_following_item(self):
-        self.page_sections[1].move_item_down()
-        [ps.refresh_from_db() for ps in self.page_sections]
-        self.assertEqual([ps.index for ps in self.page_sections], [1, 3, 2])
