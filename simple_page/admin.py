@@ -39,8 +39,8 @@ class BasePageAdmin(admin.ModelAdmin):
         return kwargs
 
     def get_inlines(self, request, obj):
+        inlines = list(super().get_inlines(request, obj))
         regions = self.get_regions(obj)
-        inlines = list()
         for region, title in regions:
             class_name = f"{region.capitalize()}Inline"
             attrs = dict(
