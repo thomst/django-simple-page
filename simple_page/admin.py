@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Max
 from mptt.admin import DraggableMPTTAdmin
 from .models import Page, PageSection
 from .forms import ReorderRelationForm
@@ -25,6 +26,17 @@ class BasePageAdmin(admin.ModelAdmin):
     def get_regions(self, obj):
         child_instance = Page.objects.get_subclass(id=obj.id)
         return getattr(child_instance, 'REGIONS', None) or [('main', 'Main Region')]
+
+    def get_formset_kwargs(self, request, obj, inline, prefix):
+        kwargs = super().get_formset_kwargs(request, obj, inline, prefix)
+        if request.method != "POST" and isinstance(inline, BaseRegionInline):
+            page_section = PageSection.objects.filter(page=obj, region=inline.region_name)
+            max_index = page_section.aggregate(Max('index'))['index__max'] or -1
+            kwargs["initial"] = [
+                {"index": max_index + i + 1, "region": inline.region_name}
+                for i in range(inline.extra)
+            ]
+        return kwargs
 
     def get_inlines(self, request, obj):
         regions = self.get_regions(obj)
