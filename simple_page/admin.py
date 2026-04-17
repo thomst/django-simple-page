@@ -35,12 +35,13 @@ class BasePageAdmin(admin.ModelAdmin):
         regions = self.get_regions(obj)
         inlines = list()
         for region, title in regions:
+            class_name = f"{region.capitalize()}Inline"
             attrs = dict(
                 region_name=region,
                 verbose_name=title,
                 verbose_name_plural=title,
                 )
-            inlines.append(type(region, (BaseRegionInline,), attrs))
+            inlines.append(type(class_name, (BaseRegionInline,), attrs))
         return inlines
 
 
