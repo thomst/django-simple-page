@@ -24,8 +24,7 @@ class BasePageAdmin(admin.ModelAdmin):
     list_filter = ("parent",)
 
     def get_regions(self, obj):
-        child_instance = Page.objects.get_subclass(id=obj.id)
-        return getattr(child_instance, 'REGIONS', None) or [('main', 'Main Region')]
+        return obj.get_regions() if obj else Page.get_regions()
 
     def get_formset_kwargs(self, request, obj, inline, prefix):
         kwargs = super().get_formset_kwargs(request, obj, inline, prefix)

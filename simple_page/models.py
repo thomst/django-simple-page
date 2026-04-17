@@ -75,6 +75,16 @@ class Page(MPTTModel, HTMLMixin):
     - regions and sections to render the content of the page
     - a routine to get the template to render the page
     """
+    REGIONS = [('main', 'Main Region')]
+
+    @classmethod
+    def get_regions(cls):
+        """
+        Return the regions for this page. This method can be customized by child
+        classes to return different regions.
+        """
+        return cls.REGIONS
+
     objects = InheritanceManager()
 
     title = models.CharField(max_length=255)
