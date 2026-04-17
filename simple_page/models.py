@@ -137,7 +137,7 @@ class PageSection(OrderedRelationMixin, models.Model):
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    region = models.CharField('Region', max_length=255, default='main')
+    region = models.CharField('Region', max_length=255)
     index = models.SmallIntegerField(blank=True)
 
     class Meta:
