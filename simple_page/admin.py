@@ -28,11 +28,9 @@ class BasePageAdmin(admin.ModelAdmin):
 
     def get_formset_kwargs(self, request, obj, inline, prefix):
         kwargs = super().get_formset_kwargs(request, obj, inline, prefix)
-        if request.method != "POST" and isinstance(inline, BaseRegionInline):
-            page_section = PageSection.objects.filter(page=obj, region=inline.region_name)
-            max_index = page_section.aggregate(Max('index'))['index__max'] or -1
-            kwargs["initial"] = [
-                {"index": max_index + i + 1, "region": inline.region_name}
+        if isinstance(inline, BaseRegionInline):
+             kwargs["initial"] = [
+                {"region": inline.region_name}
                 for i in range(inline.extra)
             ]
         return kwargs
