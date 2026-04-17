@@ -9,16 +9,11 @@ class BaseRegionInline(admin.TabularInline):
     form = ReorderRelationForm
     model = PageSection
     extra = 1
-    fields = ("section", "index")
+    fields = ("section", "index", "region")
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(region=self.region_name)
-
-    def get_formset(self, request, obj=None, **kwargs):
-        fs = super().get_formset(request, obj, **kwargs)
-        return fs
-
 
 
 class BasePageAdmin(admin.ModelAdmin):
