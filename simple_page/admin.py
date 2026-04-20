@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
+from django.utils.translation import gettext as _
 from mptt.admin import DraggableMPTTAdmin
 from .models import Page, PageSection
 from .forms import ReorderRelationForm
@@ -15,11 +16,6 @@ class BaseRegionInline(admin.TabularInline):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(region=self.region_name)
-
-
-def get_page_types():
-    cts = ContentType.objects.exclude(app_label="simple_page")
-    return [ct for ct in cts if issubclass(ct.model_class(), Page)]
 
 
 class GetPageModelMixin:
@@ -63,14 +59,23 @@ class GetPageRegionsMixin(GetPageModelMixin):
 
 class ChoosePageTypeMixin(GetPageModelMixin):
 
-    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
-        if "page_type_id" in request.GET:
-            extra_context = extra_context or {}
-            extra_context["page_type_name"] = self.get_page_model(request)._meta.verbose_name
-        return super().changeform_view(request, object_id, form_url, extra_context)
+    @staticmethod
+    def get_page_types():
+        cts = ContentType.objects.exclude(app_label="simple_page")
+        return [ct for ct in cts if issubclass(ct.model_class(), Page)]
+
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        if add or change:
+            title = _("Add %s") if add else _("Change %s")
+        else:
+            title = _("View %s")
+
+        page_model = self.get_page_model(request, obj)
+        context["title"] = title % page_model._meta.verbose_name
+        return super().render_change_form(request, context, add, change, form_url, obj)
 
     def add_view(self, request, form_url="", extra_context=None):
-        page_types = get_page_types()
+        page_types = self.get_page_types()
 
         if "page_type_id" not in request.GET:
             extra_context = extra_context or {}
