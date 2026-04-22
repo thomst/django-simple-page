@@ -5,9 +5,9 @@
     {% if page_types %}
         <h2>{% translate "Choose page type" %}</h2>
         <ul>
-            {% for id, name in page_types %}
+            {% for url, name in page_types %}
                 <li>
-                    <a href="?page_type={{ id }}" class="addlink" role="button">
+                    <a href="{{ url }}" class="addlink" role="button">
                         {% translate "Add" %} {{ name }}
                     </a>
                 </li>
