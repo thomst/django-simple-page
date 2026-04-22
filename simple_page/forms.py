@@ -11,11 +11,3 @@ class ReorderRelationForm(ModelForm):
             'index': ReorderItemsWidget(attrs={'class': 'hidden'}),
             'region': HiddenInput(),
         }
-
-
-class PageForm(ModelForm):
-    """
-    A ModelForm for Page model.
-    """
-    class Meta:
-        widgets = {"page_type": HiddenInput()}

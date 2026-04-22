@@ -1,9 +1,11 @@
 from django.contrib import admin
+from django.forms import HiddenInput
+from django.utils.functional import cached_property
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
 from mptt.admin import DraggableMPTTAdmin
 from .models import Page, PageSection
-from .forms import ReorderRelationForm, PageForm
+from .forms import ReorderRelationForm
 
 
 class BaseRegionInline(admin.TabularInline):
@@ -23,6 +25,15 @@ class BaseRegionInline(admin.TabularInline):
 
 class GetPageModelMixin:
 
+    @cached_property
+    def page_types(self):
+        """
+        Return content types of all page models.
+        """
+        exclude_apps = ["admin", "auth", "contenttypes", "sessions", "simple_page"]
+        cts = ContentType.objects.exclude(app_label__in=exclude_apps)
+        return [ct for ct in cts if issubclass(ct.model_class(), Page)]
+
     def get_page_model(self, request, obj=None):
         """
         Return the page model based on the request and object.
@@ -30,9 +41,13 @@ class GetPageModelMixin:
         if obj:
             return obj.page_type.model_class()
         elif 'page_type' in request.GET:
-            page_type = request.GET['page_type']
-            page_type = ContentType.objects.get_for_id(page_type)
-            return page_type.model_class()
+            page_type_id = request.GET['page_type']
+            try:
+                page_type = [ct for ct in self.page_types if ct.id == int(page_type_id)][0]
+            except (IndexError, ValueError):
+                raise ValueError(f"Invalid page type id: {page_type_id}")
+            else:
+                return page_type.model_class()
         else:
             return self.model
 
@@ -67,14 +82,6 @@ class GetPageRegionsMixin(GetPageModelMixin):
 
 class ChoosePageTypeMixin(GetPageModelMixin):
 
-    @staticmethod
-    def get_page_types():
-        """
-        Return content types of all page models.
-        """
-        cts = ContentType.objects.exclude(app_label="simple_page")
-        return [ct for ct in cts if issubclass(ct.model_class(), Page)]
-
     def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
         # Set the title of the change form based on the page type.
         if add or change:
@@ -89,18 +96,27 @@ class ChoosePageTypeMixin(GetPageModelMixin):
         # Add page types to the context to render a list of add links for each
         # page type. Using their content type id in the query string.
         if "page_type" not in request.GET:
-            page_types = self.get_page_types()
             extra_context = extra_context or {}
-            extra_context["page_types"] = [
-                (ct.id, ct.model_class()._meta.verbose_name)
-                for ct in page_types
-                ]
+            extra_context["page_types"] = [(ct.id, ct.model_class()._meta.verbose_name) for ct in self.page_types]
         return super().add_view(request, form_url, extra_context)
 
 
+class SetPageTypeMixin(GetPageModelMixin):
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        page_model = self.get_page_model(request, obj)
+        form.base_fields["page_type"].initial = ContentType.objects.get_for_model(page_model)
+        form.base_fields["page_type"].widget = HiddenInput()
+        return form
+
+
+class BasePageAdmin(SetPageTypeMixin, GetPageRegionsMixin, admin.ModelAdmin):
+    pass
+
+
 @admin.register(Page)
-class PageAdmin(ChoosePageTypeMixin, GetPageRegionsMixin, DraggableMPTTAdmin):
-    form = PageForm
+class PageAdmin(SetPageTypeMixin, ChoosePageTypeMixin, GetPageRegionsMixin, DraggableMPTTAdmin):
     list_display = ("tree_actions", "indented_title", "slug", "page_type")
     list_display_links=('indented_title',)
     search_fields = ("title", "slug")
