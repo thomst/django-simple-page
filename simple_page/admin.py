@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.forms import HiddenInput
 from django.utils.functional import cached_property
+from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
 from mptt.admin import DraggableMPTTAdmin
@@ -97,7 +98,14 @@ class ChoosePageTypeMixin(GetPageModelMixin):
         # page type. Using their content type id in the query string.
         if "page_type" not in request.GET:
             extra_context = extra_context or {}
-            extra_context["page_types"] = [(ct.id, ct.model_class()._meta.verbose_name) for ct in self.page_types]
+            extra_context["page_types"] = []
+            for ct in self.page_types:
+                name = ct.model_class()._meta.verbose_name
+                if ct.model_class()._meta.proxy:
+                    url = f"?page_type={ct.id}"
+                else:
+                    url = reverse(f"admin:{ct.app_label}_{ct.model}_add")
+                extra_context["page_types"].append((url, name))
         return super().add_view(request, form_url, extra_context)
 
 
