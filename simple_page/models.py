@@ -6,6 +6,7 @@ from model_utils.managers import InheritanceManager
 from django.db import models
 from django.urls import reverse
 from django.template.loader import get_template
+from django.contrib.contenttypes.models import ContentType
 
 
 class HTMLMixin:
@@ -75,7 +76,7 @@ class Page(MPTTModel, HTMLMixin):
     - regions and sections to render the content of the page
     - a routine to get the template to render the page
     """
-    REGIONS = [('main', 'Main Region')]
+    REGIONS = []
 
     @classmethod
     def get_regions(cls):
@@ -85,10 +86,15 @@ class Page(MPTTModel, HTMLMixin):
         """
         return cls.REGIONS
 
-    objects = InheritanceManager()
-
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
+    page_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    sections = models.ManyToManyField(
+        Section,
+        through="PageSection",
+        related_name="pages",
+        blank=True,
+    )
     parent = TreeForeignKey(
         "self",
         null=True,
@@ -96,15 +102,9 @@ class Page(MPTTModel, HTMLMixin):
         related_name="children",
         on_delete=models.SET_NULL,
     )
-    sections = models.ManyToManyField(
-        Section,
-        through="PageSection",
-        related_name="pages",
-        blank=True,
-    )
 
     def __str__(self):
-        return f'{self.__class__.__name__}: {self.title}'
+        return self.title
 
     def get_absolute_url(self):
         return reverse("page", kwargs={"slug": self.slug})
