@@ -17,6 +17,9 @@ class BaseRegionInline(admin.TabularInline):
         qs = super().get_queryset(request)
         return qs.filter(region=self.region_name)
 
+    class Media:
+        js = ["simple_page/formset_handlers.js"]
+
 
 class GetPageModelMixin:
 
