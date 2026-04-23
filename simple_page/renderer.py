@@ -4,7 +4,7 @@ from django.template.loader import get_template
 
 REGISTRY = dict()
 
-def register(cls, model_cls=None):
+def register(renderer_cls, model_cls=None):
     """
     Decorator to register a renderer class for a model class. When rendering
     pages or sections the registry will be checked for a renderer class. If a
@@ -12,9 +12,14 @@ def register(cls, model_cls=None):
     using the PageRenderer and sections will be rendered using the
     SectionRenderer.
     """
-    model_cls = model_cls or cls.model_cls
-    REGISTRY[model_cls] = cls
-    return cls
+    def _register(model_cls):
+        REGISTRY[model_cls] = renderer_cls
+        return model_cls
+
+    if model_cls:
+        _register(model_cls)
+    else:
+        return _register
 
 
 class BaseRenderer:
