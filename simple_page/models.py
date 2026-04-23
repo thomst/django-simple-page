@@ -5,62 +5,10 @@ from model_utils.managers import InheritanceManager
 
 from django.db import models
 from django.urls import reverse
-from django.template.loader import get_template
 from django.contrib.contenttypes.models import ContentType
 
 
-class HTMLMixin:
-    """
-    A mixin that provides a method to render the model instance as HTML using a
-    template.
-    """
-    template_name = None
-
-    def _get_base_type_name(self):
-        """
-        Return the base type name for this model. This is used to determine the
-        template folder and the context variable name when rendering the template.
-        """
-        if isinstance(self, Page):
-            return 'page'
-        elif isinstance(self, Section):
-            return 'section'
-
-    def get_template_name(self):
-        """
-        Return the template to use for this model. If template_name is set it
-        will be used. If not the template name will be the class name as snake
-        case. This method can be customized by child classes.
-        """
-        if self.template_name:
-            return self.template_name
-        else:
-            # Cast class name to snake case for the template file name.
-            cls = self.__class__
-            template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
-            return f'{self._get_base_type_name()}s/{template_name}.html'
-
-    def render(self, context=None):
-        """
-        Render the model instance using its template and return the rendered
-        HTML. This method can be customized by child classes.
-        """
-        template = get_template(self.get_template_name())
-        context = context or {}
-        context[self._get_base_type_name()] = self
-        return template.render(context)
-
-    @property
-    def html(self):
-        """
-        Return the rendered HTML for this model instance. This is a convenient
-        property to use in templates and when you don't want to pass any context
-        to the render method.
-        """
-        return self.render()
-
-
-class Section(HTMLMixin, models.Model):
+class Section(models.Model):
     """
     A base model for content sections that can be added to pages.
 
@@ -79,7 +27,7 @@ class Section(HTMLMixin, models.Model):
             return super().__str__()
 
 
-class Page(MPTTModel, HTMLMixin):
+class Page(MPTTModel):
     """
     A model holding everything to render a simple web page:
     - a slug for the URL for the page
