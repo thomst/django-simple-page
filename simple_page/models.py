@@ -110,11 +110,23 @@ class Page(MPTTModel, HTMLMixin):
         on_delete=models.SET_NULL,
     )
 
+    def get_absolute_url(self):
+        return reverse("page", kwargs={"slug": self.slug})
+
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self):
-        return reverse("page", kwargs={"slug": self.slug})
+    def __getattr__(self, name):
+        """
+        If the attribute name is a region return its sections, otherwise raise
+        AttributeError.
+        """
+        if name in [region for region, _ in self.get_regions()]:
+            sections = self.sections.filter(pagesection__region=name)
+            return sections.select_subclasses().order_by("pagesection__index")
+        else:
+            msg = f"{self.__class__.__name__} object has no attribute '{name}'"
+            raise AttributeError(msg)
 
 
 class OrderedRelationMixin:
