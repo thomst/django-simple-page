@@ -40,13 +40,24 @@ class HTMLMixin:
             template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
             return f'{self._get_base_type_name()}s/{template_name}.html'
 
-    def render(self):
+    def render(self, context=None):
         """
         Render the model instance using its template and return the rendered
         HTML. This method can be customized by child classes.
         """
         template = get_template(self.get_template_name())
-        return template.render({self._get_base_type_name(): self})
+        context = context or {}
+        context[self._get_base_type_name()] = self
+        return template.render(context)
+
+    @property
+    def html(self):
+        """
+        Return the rendered HTML for this model instance. This is a convenient
+        property to use in templates and when you don't want to pass any context
+        to the render method.
+        """
+        return self.render()
 
 
 class Section(HTMLMixin, models.Model):
