@@ -86,6 +86,13 @@ class Page(MPTTModel, HTMLMixin):
         """
         return cls.REGIONS
 
+    def resolve_obj(self):
+        """
+        Return the instance of the child class.
+        """
+        model = self.page_type.model_class()
+        return model.objects.get(id=self.id)
+
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
     page_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
