@@ -86,32 +86,40 @@ class PageRenderer(BaseRenderer):
 
     def get_context(self, request, extra_context=None):
         """
-        Add rendered sections and media assets to the context. The sections will
-        be available under the name of the region with '_sections' appended. For
-        example the sections of a main region will be available as
-        'main_sections'. Media assets will be available as 'media'. Therefore
-        the registered asset classes of the page and all sections will be merged
-        into one media object.
+        Add regions, sections and media assets to the context.
+
+        Regions will be added as list as 'regions' and as template variables on
+        their own using their slug. Each region is a dictonary with 'title',
+        'slug' and 'sections'.
+
+        Sections will be a dictonary as well with the section object as 'obj'
+        and the rendered HTML as 'html'.
+
+        All registered media assets of the page and their sections will be
+        merged and added as 'media' template variable.
         """
         context = super().get_context(request, extra_context)
 
-        # Add rendered sections for each region to the context. The sections
-        # will be available under the name of the region with '_sections'
-        # appended. For a main regions this will be 'main_sections' and so on.
-        for region, _ in self.obj.get_regions():
+        # Add regions with their title, id and sections to the context. The
+        # regions will be available as list as well es template var of their
+        # own. Sections will be a dictonary holding the section object as 'obj'
+        # and the rendered HTML as 'html'.
+        context['regions'] = []
+        for region, title in self.obj.get_regions():
+            context[region] = {'title': title, 'id': region, 'sections': []}
             sections = getattr(self.obj, region)
-            context[f'{region}_sections'] = []
             for section in sections:
                 renderer_cls = REGISTRY.get(type(section), SectionRenderer)
                 rendered_section = renderer_cls(section).render(request, context)
-                context[f'{region}_sections'].append(rendered_section)
+                section_data = {'obj': section, 'html': rendered_section}
+                context[region]['sections'].append(section_data)
+            context['regions'].append(context[region])
 
         # Add media assets to the context. Merging registered assets of the page
         # and all sections.
-        media = assets.REGISTRY.get(type(self.obj), assets.BaseAssets)()
+        context['media'] = assets.REGISTRY.get(type(self.obj), assets.BaseAssets)()
         for section in self.obj.sections.all():
             if media_cls := assets.REGISTRY.get(type(section), None):
-                media += media_cls()
-        context['media'] = media
+                context['media'] += media_cls()
 
         return context
