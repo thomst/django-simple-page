@@ -50,7 +50,7 @@ class BaseRenderer:
             template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
             return f'{self.base_type_name}s/{template_name}.html'
 
-    def get_context(self, extra_context=None):
+    def get_context(self, request, extra_context=None):
         """
         Return the context to use when rendering the template. By default the
         context will contain the object being rendered as `page` or `section`
@@ -60,7 +60,7 @@ class BaseRenderer:
         context[self.base_type_name] = self.obj
         return context
 
-    def render(self, extra_context=None):
+    def render(self, request, extra_context=None):
         """
         Return the rendered HTML using `get_template_name` and `get_context`
         methods.
@@ -70,15 +70,39 @@ class BaseRenderer:
         return template.render(context)
 
 
+class SectionRenderer(BaseRenderer):
+    """
+    Renderer for Section instances.
+    """
+    base_type_name = 'section'
+
+
 class PageRenderer(BaseRenderer):
     """
     Renderer for Page instances.
     """
     base_type_name = 'page'
 
+    def get_context(self, request, extra_context=None):
+        """
+        Add rendered sections and media assets to the context. The sections will
+        be available under the name of the region with '_sections' appended. For
+        example the sections of a main region will be available as
+        'main_sections'. Media assets will be available as 'media'. Therefore
+        the registered asset classes of the page and all sections will be merged
+        into one media object.
+        """
+        context = super().get_context(request, extra_context)
 
-class SectionRenderer(BaseRenderer):
-    """
-    Renderer for Section instances.
-    """
-    base_type_name = 'section'
+        # Add rendered sections for each region to the context. The sections
+        # will be available under the name of the region with '_sections'
+        # appended. For a main regions this will be 'main_sections' and so on.
+        for region, _ in self.obj.get_regions():
+            sections = getattr(self.obj, region)
+            context[f'{region}_sections'] = []
+            for section in sections:
+                renderer_cls = REGISTRY.get(type(section), SectionRenderer)
+                rendered_section = renderer_cls(section).render(request, context)
+                context[f'{region}_sections'].append(rendered_section)
+
+        return context

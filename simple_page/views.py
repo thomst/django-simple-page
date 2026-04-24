@@ -12,4 +12,4 @@ def page(request, slug=None):
     page = page.resolve_obj()
     renderer_cls = REGISTRY.get(type(page), PageRenderer)
     renderer = renderer_cls(page)
-    return HttpResponse(renderer.render())
+    return HttpResponse(renderer.render(request))
