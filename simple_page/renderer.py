@@ -1,5 +1,6 @@
 import re
 from django.template.loader import get_template
+from . import assets
 
 
 REGISTRY = dict()
@@ -104,5 +105,13 @@ class PageRenderer(BaseRenderer):
                 renderer_cls = REGISTRY.get(type(section), SectionRenderer)
                 rendered_section = renderer_cls(section).render(request, context)
                 context[f'{region}_sections'].append(rendered_section)
+
+        # Add media assets to the context. Merging registered assets of the page
+        # and all sections.
+        media = assets.REGISTRY.get(type(self.obj), assets.BaseAssets)()
+        for section in self.obj.sections.all():
+            if media_cls := assets.REGISTRY.get(type(section), None):
+                media += media_cls()
+        context['media'] = media
 
         return context
