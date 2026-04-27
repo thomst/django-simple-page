@@ -5,31 +5,49 @@
 [<img src="https://img.shields.io/badge/python-3-blue">](https://img.shields.io/badge/python-3-blue)
 [<img src="https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange">](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange)
 
-A simple and straight forward cms build with django.
+A simple and straight forward cms buildkit for django.
 
 ## Features
 
-- **Hierarchical Pages**: Tree-structured pages using django-mptt.
-- **Admin backend integration**: Everything handleable by django's admin backend.
-- **Simple yet powerful concept**: Three basic elements: pages, regions and sections. Each customizable in all aspects.
+- **Tree structured Pages**: By django-mptt.
+- **Pages, regions and content**: Assigning content to regions on pages.
+- **Admin backend integration**: Easy to use. Order elements via drag and drop.
+- **Simple yet powerful concept**: Just gives you the basics, but leaving the freedom with you.
 
 ## Description
 
-The strength of this project is its simplicity. You have three elements to build
-your web presentation with: pages, regions and sections. While pages hold
-everything together, regions and sections are their building blocks.
+### Pages and sections
 
-### Pages
+The strength of this project is its simplicity. You got a reliable database
+layout of pages and sections. Sections are associated with regions on pages.
+Everything else is up to you. Sections could be anything you want, from a simple
+content type like an article with title and text body to a full featured
+gallery. You build what you need just by subclassing the page and section model.
 
-TODO
+### Renderer
 
-### Regions
+While there are default renderers for pages and sections which are probably
+suitable for most use cases, you are free to completely adapt or overwrite them.
+Each page or section can have its own renderer providing a specific logic.
 
-TODO
+### Assets
 
-### Sections
+If there are any specific css or javascript files for your pages or sections,
+simply sublcass the BaseAssets and register it with your page or section class.
+The BaseAssets class is what you know from django as a Media class for forms.
+And it is just as easy as that: defining js and css properties in the familiar
+format.
 
-TODO
+### Summing-up
+
+As you can see, everything is done by subclassing. While django-simple-pages
+giving you the basics to build your website, it is not taking any freedom from
+you. You define your pages with regions, your sections as content, your
+rendering logic and your assets and put everything together like building
+blocks.
+
+Simple projects keep simple, while big projects keep their freedom. That's the
+design of django-simple-pages.
 
 
 ## Installation
@@ -61,56 +79,3 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 ```
-
-## Usage
-
-### Creating Content
-
-1. **Pages**: Create hierarchical pages with slugs for URLs.
-2. **Sections**: Extend the base `Section` model for different content types.
-3. **Regions**: Use regions as containers for sections within pages.
-
-### Example: Creating a Text Section
-
-```python
-from simple_page.models import Section
-
-class TextSection(Section):
-    content = models.TextField()
-
-    def render(self):
-        return f"<div>{self.content}</div>"
-```
-
-### Template Structure
-
-Create templates in your project's template directories:
-
-- `pages/page.html` - Default page template
-- `regions/{region_type}.html` - Region templates
-- `sections/{section_type}.html` - Section templates
-
-
-## Models
-
-### Core Models
-
-- **Page**: Hierarchical pages with MPTT tree structure.
-  - Fields: `title`, `slug`, `parent`, `sections` (M2M through PageSection)
-  - Methods: `get_template()`, `get_absolute_url()`
-
-- **Section**: Base model for content sections.
-  - Extensible via mixins for rendering and child detection.
-
-- **Region**: Base model for page regions (containers for sections).
-
-### Through Models
-
-- **PageSection**: Ordered many-to-many between pages and sections.
-- **PageRegion**: Ordered many-to-many between pages and regions.
-- **RegionSection**: Ordered many-to-many between regions and sections.
-
-
-## License
-
-This project is open source. See LICENSE file for details.
