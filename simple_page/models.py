@@ -88,40 +88,34 @@ class Page(MPTTModel):
             raise AttributeError(msg)
 
 
-class OrderedRelationMixin:
+class UpdateIndexesManager(models.Manager):
     """
-    Mixin to update indexes on deleting and adding items.
+    Provide two extra methods to update indexes of a set of items to which one
+    was added or deleted.
     """
-    def _get_item_set(self):
-        if hasattr(self, 'page'):
-            kwargs = {'page': self.page}
+    def update_indexes(self, obj):
+        """
+        If an object is about to be added we give him the next higher index. It
+        it was deleted we decrease the indexes of every following item by one.
+
+        Call this method within pre-save and post-delete signal handlers. On a
+        queryset that selects the ordered group of items.
+        """
+        if obj.pk is None:
+            max_index = self.aggregate(models.Max('index'))['index__max'] or 0
+            obj.index = max_index + 1
+
         else:
-            kwargs = {'region': self.region}
-        return type(self).objects.filter(**kwargs)
-
-    def update_indexes_on_deleting(self):
-        """
-        Decrease index by one for all following items. Run this method after
-        items was deleted.
-        """
-        items = self._get_item_set()
-        for item in items.filter(index__gt=self.index):
-            item.index -= 1
-            item.save()
-
-    def update_indexes_on_adding(self):
-        """
-        Set max index + 1 for item. Run this method before item was saved.
-        """
-        items = self._get_item_set()
-        max_index = items.aggregate(models.Max('index'))['index__max'] or 0
-        self.index = max_index + 1
+            for itm in self.filter(index__gt=obj.index):
+                itm.index -= 1
+                itm.save()
 
 
-class PageSection(OrderedRelationMixin, models.Model):
+class PageSection(models.Model):
     """
     Ordered many-to-many relation between pages and sections.
     """
+    objects = UpdateIndexesManager()
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)

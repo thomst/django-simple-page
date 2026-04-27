@@ -50,7 +50,6 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ['page__id', 'index'],
             },
-            bases=(simple_page.models.OrderedRelationMixin, models.Model),
         ),
         migrations.AddField(
             model_name='page',
