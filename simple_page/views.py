@@ -4,11 +4,11 @@ from .models import Page
 from .renderer import REGISTRY, PageRenderer
 
 
-def page(request, slug=None):
+def page(request, slug):
     """
     View function to render a page by its slug.
     """
-    page = get_object_or_404(Page, slug=slug or 'home')
+    page = get_object_or_404(Page, slug=slug)
     page = page.resolve_obj()
     renderer_cls = REGISTRY.get(type(page), PageRenderer)
     renderer = renderer_cls(page)
