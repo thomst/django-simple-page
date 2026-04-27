@@ -46,8 +46,8 @@ you. You define your pages with regions, your sections as content, your
 rendering logic and your assets and put everything together like building
 blocks.
 
-Simple projects keep simple, while big projects keep their freedom. That's the
-design of django-simple-pages.
+Simple projects keep simple, while big projects keep their freedom. Be helpful,
+but stay out of the way. That's what django-simple-pages wants to do.
 
 
 ## Installation
