@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 
 from simple_page.models import Page, PageSection, Section
@@ -98,3 +99,33 @@ class UpdateIndexesTests(TestDataMixin, TestCase):
             region='main',
             section=section)
         self.assertEqual(new_page_section.index, last_index + 1)
+
+
+class AdminBackendTests(TestDataMixin, TestCase):
+
+    def setUp(self):
+        self.client.force_login(User.objects.first())
+
+    def test_main_page_changeform_regions(self):
+        page_type = ContentType.objects.get(model='mainpage')
+        page = Page.objects.filter(page_type=page_type).first()
+        page_url = reverse('admin:simple_page_page_change', args=(page.id,))
+
+        resp = self.client.get(page_url)
+        self.assertEqual(resp.status_code, 200)
+        for _, title in MainPage.get_regions():
+            regex = r'<h2[^>]+>\s*{}\s*</h2>'.format(title)
+            self.assertRegex(resp.content.decode('utf8'), regex)
+
+    def test_extra_page_changeform_regions(self):
+        page_type = ContentType.objects.get(model='extrapage')
+        page = Page.objects.filter(page_type=page_type).first()
+        page_url = reverse('admin:simple_page_page_change', args=(page.id,))
+        extra_page_url = reverse('admin:test_project_extrapage_change', args=(page.id,))
+
+        for url in [page_url, extra_page_url]:
+            resp = self.client.get(url)
+            self.assertEqual(resp.status_code, 200)
+            for _, title in ExtraPage.get_regions():
+                regex = r'<h2[^>]+>\s*{}\s*</h2>'.format(title)
+                self.assertRegex(resp.content.decode('utf8'), regex)
