@@ -101,14 +101,15 @@ class UpdateIndexesManager(models.Manager):
         Call this method within pre-save and post-delete signal handlers. On a
         queryset that selects the ordered group of items.
         """
+        items = self.filter(page=obj.page, region=obj.region)
         if obj.pk is None:
-            max_index = self.aggregate(models.Max('index'))['index__max'] or 0
+            max_index = items.aggregate(models.Max('index'))['index__max'] or 0
             obj.index = max_index + 1
 
         else:
-            for itm in self.filter(index__gt=obj.index):
-                itm.index -= 1
-                itm.save()
+            for item in items.filter(index__gt=obj.index):
+                item.index -= 1
+                item.save()
 
 
 class PageSection(models.Model):
