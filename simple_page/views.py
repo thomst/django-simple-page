@@ -4,7 +4,7 @@ from .models import Page
 from .renderer import REGISTRY, PageRenderer
 
 
-def page(request, slug):
+def page_view(request, slug):
     """
     View function to render a page by its slug.
     """
