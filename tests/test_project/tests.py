@@ -115,7 +115,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
         resp = self.client.get(page_url)
         self.assertEqual(resp.status_code, 200)
         for _, title in MainPage.get_regions():
-            regex = r'<h2[^>]+>\s*{}\s*</h2>'.format(title)
+            regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
             self.assertRegex(resp.content.decode('utf8'), regex)
 
     def test_extra_page_changeform_regions(self):
@@ -127,7 +127,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
             resp = self.client.get(url)
             self.assertEqual(resp.status_code, 200)
             for _, title in ExtraPage.get_regions():
-                regex = r'<h2[^>]+>\s*{}\s*</h2>'.format(title)
+                regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
                 self.assertRegex(resp.content.decode('utf8'), regex)
 
     def test_choose_page_type_mixin(self):
