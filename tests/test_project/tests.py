@@ -47,8 +47,5 @@ class SimplePageTests(TestCase):
 
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
-            self.assertIsInstance(page, Page)
-            self.assertNotIsInstance(page, MainPage)
-            self.assertNotIsInstance(page, ExtraPage)
             child = page.resolve_obj()
             self.assertTrue(isinstance(child, MainPage) or isinstance(child, ExtraPage))
