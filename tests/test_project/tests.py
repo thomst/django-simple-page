@@ -105,10 +105,11 @@ class AdminBackendTests(TestDataMixin, TestCase):
 
     def setUp(self):
         self.client.force_login(User.objects.first())
+        self.main_page_type = ContentType.objects.get(model='mainpage')
+        self.extra_page_type = ContentType.objects.get(model='extrapage')
 
     def test_main_page_changeform_regions(self):
-        page_type = ContentType.objects.get(model='mainpage')
-        page = Page.objects.filter(page_type=page_type).first()
+        page = Page.objects.filter(page_type=self.main_page_type).first()
         page_url = reverse('admin:simple_page_page_change', args=(page.id,))
 
         resp = self.client.get(page_url)
@@ -118,8 +119,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
             self.assertRegex(resp.content.decode('utf8'), regex)
 
     def test_extra_page_changeform_regions(self):
-        page_type = ContentType.objects.get(model='extrapage')
-        page = Page.objects.filter(page_type=page_type).first()
+        page = Page.objects.filter(page_type=self.extra_page_type).first()
         page_url = reverse('admin:simple_page_page_change', args=(page.id,))
         extra_page_url = reverse('admin:test_project_extrapage_change', args=(page.id,))
 
@@ -131,8 +131,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
                 self.assertRegex(resp.content.decode('utf8'), regex)
 
     def test_choose_page_type_mixin(self):
-        main_page_type = ContentType.objects.get(model='mainpage')
-        main_page_href = f'?page_type={main_page_type.id}'
+        main_page_href = f'?page_type={self.main_page_type.id}'
         extra_page_url = reverse('admin:test_project_extrapage_add')
         url = reverse('admin:simple_page_page_add')
         resp = self.client.get(url)
