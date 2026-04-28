@@ -152,3 +152,21 @@ class AdminBackendTests(TestDataMixin, TestCase):
         self.assertEqual(resp.status_code, 200)
         input = f'<input type="hidden" name="page_type" value="{self.extra_page_type.id}" id="id_page_type">'
         self.assertInHTML(input, resp.content.decode('utf8'))
+
+
+class PageViewTests(TestDataMixin, TestCase):
+
+    def setUp(self):
+        self.client.force_login(User.objects.first())
+
+    def test_page_view(self):
+        page = Page.objects.get(slug='home')
+        url = reverse('page', kwargs=dict(slug=page.slug))
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertInHTML(f'<h1>{page.title}</h1>', resp.content.decode('utf8'))
+
+    def test_page_view_with_invalid_slug(self):
+        url = reverse('page', kwargs={'slug': 'invalid_slug'})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 404)
