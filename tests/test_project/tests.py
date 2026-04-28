@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.contenttypes.models import ContentType
 
 from simple_page.models import Page, PageSection, Section
 from simple_page.renderer import REGISTRY as RENDERER_REGISTRY
@@ -13,6 +14,22 @@ from .assets import TextSectionAssets, ExtraPageAssets
 
 class SimplePageTests(TestCase):
     fixtures = ['testdata.json']
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        # Fix the page_type references. The ids in the page fixtures might not
+        # fit to the real content type ids.
+        extra_pages = ExtraPage.objects.all()
+        extra_page_type = ContentType.objects.get(model='extrapage')
+        main_pages = Page.objects.exclude(id__in=[p.id for p in extra_pages])
+        main_page_type = ContentType.objects.get(model='mainpage')
+        for page in extra_pages:
+            page.page_type = extra_page_type
+            page.save()
+        for page in main_pages:
+            page.page_type = main_page_type
+            page.save()
 
     def test_renderer_registry(self):
         self.assertIn(TextSection, RENDERER_REGISTRY)
