@@ -57,7 +57,8 @@ but stay out of the way. That's what django-simple-pages wants to do.
 INSTALLED_APPS = [
     # ... other apps
     'simple_page',
-    'mptt',  # Required for tree structure
+    'reorder_items_widget',
+    'mptt',
 ]
 ```
 
