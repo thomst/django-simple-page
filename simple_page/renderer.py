@@ -106,7 +106,7 @@ class PageRenderer(BaseRenderer):
         # and the rendered HTML as 'html'.
         context['regions'] = []
         for region, title in self.obj.get_regions():
-            context[region] = {'title': title, 'id': region, 'sections': []}
+            context[region] = {'title': title, 'slug': region, 'sections': []}
             sections = getattr(self.obj, region)
             for section in sections:
                 renderer_cls = REGISTRY.get(type(section), SectionRenderer)
