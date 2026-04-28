@@ -5,7 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from simple_page.models import Page, PageSection, Section
 from simple_page.renderer import REGISTRY as RENDERER_REGISTRY
 from simple_page.assets import REGISTRY as ASSETS_REGISTRY
-from simple_page.utils import render_page
 
 from .models import TextSection, TextWithTitleSection, MainPage, ExtraPage
 from .renderer import TextSectionRenderer, ExtraPageRenderer
