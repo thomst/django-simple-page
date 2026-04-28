@@ -11,7 +11,7 @@ from .renderer import TextSectionRenderer, ExtraPageRenderer
 from .assets import TextSectionAssets, ExtraPageAssets
 
 
-class SimplePageTests(TestCase):
+class TestDataMixin:
     fixtures = ['testdata.json']
 
     @classmethod
@@ -30,6 +30,8 @@ class SimplePageTests(TestCase):
             page.page_type = main_page_type
             page.save()
 
+
+class SimplePageTests(TestDataMixin, TestCase):
     def test_renderer_registry(self):
         self.assertIn(TextSection, RENDERER_REGISTRY)
         self.assertIn(ExtraPage, RENDERER_REGISTRY)
@@ -64,4 +66,35 @@ class SimplePageTests(TestCase):
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
             child = page.resolve_obj()
-            self.assertTrue(isinstance(child, MainPage) or isinstance(child, ExtraPage))
+            self.assertTrue(isinstance(child, (MainPage, ExtraPage)))
+
+
+class UpdateIndexesTests(TestDataMixin, TestCase):
+
+    def test_update_indexes_on_deleting(self):
+        page = ExtraPage.objects.first()
+        page_sections = PageSection.objects.filter(page=page, region='extra')
+
+        # Get original indexes.
+        old_indxs = dict(page_sections.values_list('id', 'index'))
+
+        # Delete first item and reload indexes.
+        page_sections.first().delete()
+        page_sections = page_sections.all()
+        new_indxs = dict(page_sections.values_list('id', 'index'))
+
+        # Check that they were decreased by one.
+        self.assertEqual(len(old_indxs) - 1, len(new_indxs))
+        for id, index in new_indxs.items():
+            self.assertEqual(index, old_indxs[id] - 1)
+
+    def test_set_index_on_adding(self):
+        page = MainPage.objects.first()
+        section = Section.objects.first()
+        page_sections = PageSection.objects.filter(page=page, region='main')
+        last_index = page_sections.last().index
+        new_page_section = PageSection.objects.create(
+            page=page,
+            region='main',
+            section=section)
+        self.assertEqual(new_page_section.index, last_index + 1)
