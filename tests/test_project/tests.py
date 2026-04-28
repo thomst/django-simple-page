@@ -141,3 +141,10 @@ class AdminBackendTests(TestDataMixin, TestCase):
             self.assertRegex(resp.content.decode('utf8'), regex)
             self.assertIn(main_page_href, resp.content.decode('utf8'))
             self.assertIn(extra_page_url, resp.content.decode('utf8'))
+
+    def test_set_page_type_mixin(self):
+        add_page_url = reverse('admin:test_project_extrapage_add')
+        resp = self.client.get(add_page_url)
+        self.assertEqual(resp.status_code, 200)
+        input = f'<input type="hidden" name="page_type" value="{self.extra_page_type.id}" id="id_page_type">'
+        self.assertInHTML(input, resp.content.decode('utf8'))
