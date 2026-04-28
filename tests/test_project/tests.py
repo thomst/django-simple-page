@@ -110,20 +110,24 @@ class AdminBackendTests(TestDataMixin, TestCase):
 
     def test_main_page_changeform_regions(self):
         page = Page.objects.filter(page_type=self.main_page_type).first()
-        page_url = reverse('admin:simple_page_page_change', args=(page.id,))
+        change_page_url = reverse('admin:simple_page_page_change', args=(page.id,))
+        add_page_url = reverse('admin:simple_page_page_add')
+        add_page_url = f'{add_page_url}?page_type={self.main_page_type.id}'
 
-        resp = self.client.get(page_url)
-        self.assertEqual(resp.status_code, 200)
-        for _, title in MainPage.get_regions():
-            regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
-            self.assertRegex(resp.content.decode('utf8'), regex)
+        for url in [change_page_url, add_page_url]:
+            resp = self.client.get(url)
+            self.assertEqual(resp.status_code, 200)
+            for _, title in MainPage.get_regions():
+                regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
+                self.assertRegex(resp.content.decode('utf8'), regex)
 
     def test_extra_page_changeform_regions(self):
         page = Page.objects.filter(page_type=self.extra_page_type).first()
-        page_url = reverse('admin:simple_page_page_change', args=(page.id,))
-        extra_page_url = reverse('admin:test_project_extrapage_change', args=(page.id,))
+        change_page_url = reverse('admin:simple_page_page_change', args=(page.id,))
+        change_extra_page_url = reverse('admin:test_project_extrapage_change', args=(page.id,))
+        add_extra_page_url = reverse('admin:test_project_extrapage_add')
 
-        for url in [page_url, extra_page_url]:
+        for url in [change_page_url, change_extra_page_url, add_extra_page_url]:
             resp = self.client.get(url)
             self.assertEqual(resp.status_code, 200)
             for _, title in ExtraPage.get_regions():
