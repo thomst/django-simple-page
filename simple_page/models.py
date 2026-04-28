@@ -90,26 +90,27 @@ class Page(MPTTModel):
 
 class UpdateIndexesManager(models.Manager):
     """
-    Provide two extra methods to update indexes of a set of items to which one
-    was added or deleted.
+    Provide methods to set the index of an newly saved object and to fix
+    indexes of a set of items from which one was deleted.
     """
-    def update_indexes(self, obj):
+    def set_index(self, obj):
         """
-        If an object is about to be added we give him the next higher index. It
-        it was deleted we decrease the indexes of every following item by one.
-
-        Call this method within pre-save and post-delete signal handlers. On a
-        queryset that selects the ordered group of items.
+        If an object is about to be added we give him the next higher
+        index. Call this method from a pre-save signal handler.
         """
         items = self.filter(page=obj.page, region=obj.region)
-        if obj.pk is None:
-            max_index = items.aggregate(models.Max('index'))['index__max'] or 0
-            obj.index = max_index + 1
+        max_index = items.aggregate(models.Max('index'))['index__max'] or 0
+        obj.index = max_index + 1
 
-        else:
-            for item in items.filter(index__gt=obj.index):
-                item.index -= 1
-                item.save()
+    def update_indexes(self, obj):
+        """
+        If an object was deleted fix the indexes of following objects. Call this
+        method from a post-delete signal handler.
+        """
+        items = self.filter(page=obj.page, region=obj.region)
+        for item in items.filter(index__gt=obj.index):
+            item.index -= 1
+            item.save()
 
 
 class PageSection(models.Model):
