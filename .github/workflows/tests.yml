@@ -54,7 +54,7 @@ jobs:
         pip install --editable ./
 
     - name: Run Tests
-      run: coverage run --source=simple_page/ example/manage.py test
+      run: coverage run --source=simple_page/ tests/manage.py test test_project
 
     - name: Create coverage lcov file
       run: coverage lcov -o coverage.lcov
