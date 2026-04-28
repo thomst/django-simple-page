@@ -118,7 +118,7 @@ class PageRenderer(BaseRenderer):
         # Add media assets to the context. Merging registered assets of the page
         # and all sections.
         context['media'] = assets.REGISTRY.get(type(self.obj), assets.BaseAssets)()
-        for section in self.obj.sections.all():
+        for section in self.obj.sections.select_subclasses():
             if media_cls := assets.REGISTRY.get(type(section), None):
                 context['media'] += media_cls()
 
