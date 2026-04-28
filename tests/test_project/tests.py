@@ -129,3 +129,16 @@ class AdminBackendTests(TestDataMixin, TestCase):
             for _, title in ExtraPage.get_regions():
                 regex = r'<h2[^>]+>\s*{}\s*</h2>'.format(title)
                 self.assertRegex(resp.content.decode('utf8'), regex)
+
+    def test_choose_page_type_mixin(self):
+        main_page_type = ContentType.objects.get(model='mainpage')
+        main_page_href = f'?page_type={main_page_type.id}'
+        extra_page_url = reverse('admin:test_project_extrapage_add')
+        url = reverse('admin:simple_page_page_add')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        for page_model in [MainPage, ExtraPage]:
+            regex = r'<a[^>]+>\s*Add {}\s*</a>'.format(page_model._meta.verbose_name)
+            self.assertRegex(resp.content.decode('utf8'), regex)
+            self.assertIn(main_page_href, resp.content.decode('utf8'))
+            self.assertIn(extra_page_url, resp.content.decode('utf8'))
