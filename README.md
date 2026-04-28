@@ -1,7 +1,7 @@
 # Welcome to django-simple-page
 
 [![Tests](https://github.com/thomst/django-simple-page/actions/workflows/tests.yml/badge.svg)](https://github.com/thomst/django-simple-page/actions/workflows/tests.yml)
-[<img src="https://coveralls.io/repos/github/thomst/django-simple-page/badge.svg?branch=main">](https://coveralls.io/github/thomst/django-simple-page?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/thomst/django-simple-page/badge.svg?branch=main)](https://coveralls.io/github/thomst/django-simple-page?branch=main)
 [<img src="https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange">](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange)
 
 A simple and straight forward cms buildkit for django.
