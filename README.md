@@ -39,14 +39,14 @@ format.
 
 ### Summing-up
 
-As you can see, everything is done by subclassing. While django-simple-pages
+As you can see, everything is done by subclassing. While django-simple-page
 giving you the basics to build your website, it is not taking any freedom from
 you. You define your pages with regions, your sections as content, your
 rendering logic and your assets and put everything together like building
 blocks.
 
-Simple projects keep simple, while big projects keep their freedom. Be helpful,
-but stay out of the way. That's what django-simple-pages wants to do.
+Let simple projects be simple, and advanced projects having their way. So be
+helpful. But not obtrusive. That's what django-simple-page wants to be.
 
 
 ## Installation
@@ -55,10 +55,11 @@ but stay out of the way. That's what django-simple-pages wants to do.
 
 ```python
 INSTALLED_APPS = [
-    # ... other apps
+    # ...
     'simple_page',
     'reorder_items_widget',
     'mptt',
+    # ...
 ]
 ```
 
@@ -68,14 +69,7 @@ INSTALLED_APPS = [
 python manage.py migrate
 ```
 
-3. Include the URLs in your project's `urls.py`:
 
-```python
-from django.urls import include, path
+## Getting started
 
-urlpatterns = [
-    # ... other URLs
-    path('', include('simple_page.urls')),
-    path('admin/', admin.site.urls),
-]
-```
+TODO
