@@ -43,6 +43,9 @@ class Page(MPTTModel):
     - It provides some logic to handle the regions a subclass sets.
     """
 
+    # FIXME: We should use REGIONS = None and raise a NotImplementedError. But
+    # tests are failing, since for any reason the get_regions method is called
+    # on a Page objects occacionally.
     REGIONS = []
     """
     REGIONS must be set by a subclass as a list of tuples holding the region's
@@ -133,8 +136,9 @@ class UpdateIndexesManager(models.Manager):
 
 class PageSection(models.Model):
     """
-    Ordered many-to-many relation between pages and sections. Each relation has
-    a specific page region it belongs to.
+    Assign sections to regions on pages using PageSection as an intermediate
+    model for the many-to-many relation between the Page and the Section model.
+    We also provide an index field to make page-sections orderable.
     """
     objects = UpdateIndexesManager()
 
