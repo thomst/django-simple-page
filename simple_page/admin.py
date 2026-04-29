@@ -25,6 +25,10 @@ class BaseRegionInline(admin.TabularInline):
 
 
 class GetPageModelMixin:
+    """
+    A mixin to choose the page model based on a page_type url query parameter or
+    the the page_type field of the current page object.
+    """
 
     @cached_property
     def page_types(self):
@@ -53,7 +57,11 @@ class GetPageModelMixin:
             return self.model
 
 
-class GetPageRegionsMixin(GetPageModelMixin):
+class RenderPageRegionsMixin(GetPageModelMixin):
+    """
+    Render a `PageSection` inline formset for each region of the page. Also make
+    sure extra forms have the region's name as initial for the region field.
+    """
 
     def get_page_regions(self, request, obj):
         return self.get_page_model(request, obj).get_regions()
@@ -82,6 +90,12 @@ class GetPageRegionsMixin(GetPageModelMixin):
 
 
 class ChoosePageTypeMixin(GetPageModelMixin):
+    """
+    Let the user choose the type of the page she wants to add. Therefore render
+    a simple list of add-links which either set the page_type url-query
+    parameter for proxy page models. Or use the page's own modeladmin change
+    form for concrete page models.
+    """
 
     def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
         # Set the title of the change form based on the page type.
@@ -110,6 +124,11 @@ class ChoosePageTypeMixin(GetPageModelMixin):
 
 
 class SetPageTypeMixin(GetPageModelMixin):
+    """
+    Be sure that change forms for adding pages have the correct page_type set.
+    The page_type field will be hidden and equipped with an appropriate initial
+    value.
+    """
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -119,14 +138,18 @@ class SetPageTypeMixin(GetPageModelMixin):
         return form
 
 
-class BasePageAdmin(SetPageTypeMixin, GetPageRegionsMixin, admin.ModelAdmin):
-    pass
-
-
 @admin.register(Page)
-class PageAdmin(SetPageTypeMixin, ChoosePageTypeMixin, GetPageRegionsMixin, DraggableMPTTAdmin):
+class PageAdmin(SetPageTypeMixin, ChoosePageTypeMixin, RenderPageRegionsMixin, DraggableMPTTAdmin):
     list_display = ("tree_actions", "indented_title", "slug", "page_type")
     list_display_links=('indented_title',)
     search_fields = ("title", "slug")
     prepopulated_fields = {"slug": ("title",)}
     list_filter = ("parent",)
+
+
+class BasePageAdmin(SetPageTypeMixin, RenderPageRegionsMixin, admin.ModelAdmin):
+    """
+    Use this base class for your own concrete page modeladmin. It will take care
+    of rendering an inline formset for each region. And set the appropriate
+    value for the page_type field.
+    """

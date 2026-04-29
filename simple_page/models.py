@@ -10,12 +10,9 @@ from django.contrib.contenttypes.models import ContentType
 
 class Section(models.Model):
     """
-    A base model for content sections that can be added to pages.
-
-    This model is ment as a base model for all section types, which can be any
-    content type you want to see on your website. It does not contain any fields
-    itself, but provides a common interface for rendering the section as HTML
-    which can be customized by child classes.
+    This model is the base model for what ever content you want to see on your
+    website. It does not has any fields on its own but provides a many-to-many
+    relationship to the `Page` model.
     """
     objects = InheritanceManager()
 
@@ -29,13 +26,34 @@ class Section(models.Model):
 
 class Page(MPTTModel):
     """
-    A model holding everything to render a simple web page:
-    - a slug for the URL for the page
-    - the base page to create navigation menus
-    - regions and sections to render the content of the page
-    - a routine to get the template to render the page
+    This is the base model for all pages. The only thing a subclass has to do is
+    to setup the regions it wants to use. Since the database layout of the base
+    class is fully functional, it is totally sufficient to define your page
+    model as a proxy. Still you are free to use a concrete child model with all
+    the additional fields and logic you whish for.
+
+    The sections of a page are available as a region specific queryset using the
+    region's name as an object attribute.
+
+    The base model takes care of the following things:
+    - As a `mptt` model it allows to arrange pages in treelike structures.
+    - It has a region specific many-to-many relationship to the `Section` model.
+    - It has a `slug` field which can be used in your url path.
+    - It has a `ContentType` relation that points to the Page's child class.
+    - It provides some logic to handle the regions a subclass sets.
     """
+
     REGIONS = []
+    """
+    REGIONS must be set by a subclass as a list of tuples holding the region's
+    name and its title. Something like::
+
+        REGIONS = [
+            ('main', 'Main Region'),
+            ('sidebar', 'Sidebar'),
+            ('footer', 'Footer'),
+        ]
+    """
 
     @classmethod
     def get_regions(cls):
@@ -115,7 +133,8 @@ class UpdateIndexesManager(models.Manager):
 
 class PageSection(models.Model):
     """
-    Ordered many-to-many relation between pages and sections.
+    Ordered many-to-many relation between pages and sections. Each relation has
+    a specific page region it belongs to.
     """
     objects = UpdateIndexesManager()
 
