@@ -1,6 +1,7 @@
 import re
 from django.template.loader import get_template
 from . import assets
+from .models import Page
 
 
 REGISTRY = dict()
@@ -23,6 +24,16 @@ def register(renderer_cls, model_cls=None):
         return _register
 
 
+def get_renderer(obj):
+    """
+    Return an initialized renderer for the object. Check for a registered
+    renderer class for the objects type. And use the :class:`~.PageRenderer` or
+    the :class:`~.SectionRenderer` instead - depending on the object's type.
+    """
+    default_renderer = PageRenderer if isinstance(obj, Page) else SectionRenderer
+    return REGISTRY.get(type(obj), default_renderer)(obj)
+
+
 class Renderer:
     """
     Base renderer class. This class provides the basic functionality to render a
@@ -31,7 +42,6 @@ class Renderer:
     a child class has to provide is a `render` method returning valid HTML.
     """
     template_name = None
-    base_type_name = None
 
     def __init__(self, obj):
         self.obj = obj
@@ -52,28 +62,29 @@ class Renderer:
         if self.template_name:
             return self.template_name
         else:
-            # Cast class name to snake case for the template file name.
-            cls = self.obj.__class__
-            template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
-            return f'{self.base_type_name}s/{template_name}.html'
+            cls_name = self.obj.__class__.__name__
+            template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
+            folder = 'pages' if isinstance(self.obj, Page) else 'sections'
+            return f'{folder}/{template_name}.html'
 
-    def get_context(self, request, extra_context=None):
+    def get_context(self, *args, **kwargs):
         """
         Return the context to use when rendering the template. By default the
         context will contain the object being rendered as 'page' or 'section' -
         depending on the object's type.
         """
-        context = extra_context or {}
-        context[self.base_type_name] = self.obj
+        context = kwargs.get('extra_context', dict())
+        obj_type = 'page' if isinstance(self.obj, Page) else 'section'
+        context[obj_type] = self.obj
         return context
 
-    def render(self, request, extra_context=None):
+    def render(self, *args, **kwargs):
         """
         Return the rendered HTML using the template and context returned by
         :meth:`~.get_template_name` and :meth:`~.get_context` methods.
         """
         template = get_template(self.get_template_name())
-        context = self.get_context(extra_context)
+        context = self.get_context(*args, **kwargs)
         return template.render(context)
 
 
@@ -81,16 +92,13 @@ class SectionRenderer(Renderer):
     """
     Renderer for Section instances.
     """
-    base_type_name = 'section'
 
 
 class PageRenderer(Renderer):
     """
     Renderer for Page instances.
     """
-    base_type_name = 'page'
-
-    def get_context(self, request, extra_context=None):
+    def get_context(self, *args, **kwargs):
         """
         Add regions, sections and media assets to the context.
 
@@ -104,7 +112,7 @@ class PageRenderer(Renderer):
         All registered media assets of the page and their sections will be
         merged and added as 'media' template variable.
         """
-        context = super().get_context(request, extra_context)
+        context = super().get_context(*args, **kwargs)
 
         # Add regions with their title, id and sections to the context. The
         # regions will be available as list as well es template var of their
@@ -115,8 +123,7 @@ class PageRenderer(Renderer):
             context[region] = {'title': title, 'slug': region, 'sections': []}
             sections = getattr(self.obj, region)
             for section in sections:
-                renderer_cls = REGISTRY.get(type(section), SectionRenderer)
-                rendered_section = renderer_cls(section).render(request, context)
+                rendered_section = get_renderer(section).render(*args, **kwargs)
                 section_data = {'obj': section, 'html': rendered_section}
                 context[region]['sections'].append(section_data)
             context['regions'].append(context[region])

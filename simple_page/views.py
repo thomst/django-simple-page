@@ -1,15 +1,12 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from .models import Page
-from .renderer import REGISTRY, PageRenderer
+from .renderer import get_renderer
 
 
-def page_view(request, slug):
+def page_view(request, slug, **kwargs):
     """
     View function to render a page by its slug.
     """
-    page = get_object_or_404(Page, slug=slug)
-    page = page.resolve_obj()
-    renderer_cls = REGISTRY.get(type(page), PageRenderer)
-    renderer = renderer_cls(page)
-    return HttpResponse(renderer.render(request))
+    page = get_object_or_404(Page, slug=slug).resolve_obj()
+    return HttpResponse(get_renderer(page).render(request, **kwargs))
