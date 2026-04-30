@@ -5,8 +5,12 @@ REGISTRY = dict()
 
 def register(assets_cls, model_cls=None):
     """
-    Decorator to register an asset class for a page or section model. When
-    rendering pages or sections the registry will be checked for assets.
+    Register an :class:`~.Assets` class for a page or section model. This
+    function can also be used as a decorator for the model class::
+
+        @assets.register(FancySectionAssets):
+        class FancySection(Section):
+            ...
     """
     def _register(model_cls):
         REGISTRY[model_cls] = assets_cls
