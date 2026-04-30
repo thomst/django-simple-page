@@ -23,7 +23,7 @@ def register(renderer_cls, model_cls=None):
         return _register
 
 
-class BaseRenderer:
+class Renderer:
     """
     Base renderer class. This class provides the basic functionality to render a
     Page or Section instance using a template. It can be extended to add custom
@@ -71,14 +71,14 @@ class BaseRenderer:
         return template.render(context)
 
 
-class SectionRenderer(BaseRenderer):
+class SectionRenderer(Renderer):
     """
     Renderer for Section instances.
     """
     base_type_name = 'section'
 
 
-class PageRenderer(BaseRenderer):
+class PageRenderer(Renderer):
     """
     Renderer for Page instances.
     """
