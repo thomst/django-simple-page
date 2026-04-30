@@ -99,40 +99,65 @@ class PageRenderer(Renderer):
     """
     Renderer for Page instances.
     """
+
+    def render_section(self, section, *args, **kwargs):
+        """
+        Return a section rendered as html.
+        """
+        return get_renderer(section).render(*args, **kwargs)
+
+    def get_section_data(self, section, *args, **kwargs):
+        """
+        Return a dictonary holding the section as object and as rendered html
+        using 'obj' and 'html' as keys.
+        """
+        return dict(
+            obj=section,
+            html=self.render_section(section, *args, **kwargs)
+        )
+
+    def get_region_data(self, name, title, *args, **kwargs):
+        """
+        Return a dictonary with the name, the title and the sections of a
+        region. The sections will be a dictonary of the section object and its
+        rendered html. See :meth:`~.get_section_data`.
+        """
+        region = {'title': title, 'name': name, 'sections': []}
+        for section in getattr(self.obj, name):
+            section_data = self.get_section_data(section, *args, **kwargs)
+            region['sections'].append(section_data)
+        return region
+
+    def get_assets(self, *args, **kwargs):
+        """
+        Return an :class:`~.simple_page.assets.Assets` instance which holding
+        all the assets from the page and its sections.
+        """
+        media = get_assets(self.obj)
+        for section in self.obj.sections.select_subclasses():
+            media += get_assets(section)
+        return media
+
     def get_context(self, *args, **kwargs):
         """
-        Add regions, sections and media assets to the context.
+        Add regions and media assets to the context.
 
-        Regions will be added as list as 'regions' and as template variables on
-        their own using their slug. Each region is a dictonary with 'title',
-        'slug' and 'sections'.
+        Regions will be added as template variables on their own and as a list
+        named 'regions'. Each region is a dictonary of its name, title and its
+        sections. See :meth:`~.get_region_data`.
 
-        Sections will be a dictonary as well with the section object as 'obj'
-        and the rendered HTML as 'html'.
-
-        All registered media assets of the page and their sections will be
-        merged and added as 'media' template variable.
+        Media assets will be the merged assets of the page and all its sections.
+        See :meth:`~.get_assets`.
         """
         context = super().get_context(*args, **kwargs)
 
-        # Add regions with their title, id and sections to the context. The
-        # regions will be available as list as well es template var of their
-        # own. Sections will be a dictonary holding the section object as 'obj'
-        # and the rendered HTML as 'html'.
+        # Add regions to the context.
         context['regions'] = []
-        for region, title in self.obj.get_regions():
-            context[region] = {'title': title, 'slug': region, 'sections': []}
-            sections = getattr(self.obj, region)
-            for section in sections:
-                rendered_section = get_renderer(section).render(*args, **kwargs)
-                section_data = {'obj': section, 'html': rendered_section}
-                context[region]['sections'].append(section_data)
-            context['regions'].append(context[region])
+        for name, title in self.obj.get_regions():
+            context[name] = self.get_region_data(name, title, *args, **kwargs)
+            context['regions'].append(context[name])
 
-        # Add media assets to the context. Merging registered assets of the page
-        # and all sections.
-        context['media'] = get_assets(self.obj)
-        for section in self.obj.sections.select_subclasses():
-            context['media'] += get_assets(section)
+        # Add media to the context.
+        context['media'] = self.get_assets(*args, **kwargs)
 
         return context
