@@ -18,6 +18,14 @@ def register(assets_cls, model_cls=None):
         return _register
 
 
+def get_assets(obj):
+    """
+    Return an assets instance for the object. Check for a registered assets
+    class. Use :class:`~.BaseAssets` as a fallback.
+    """
+    return REGISTRY.get(type(obj), BaseAssets)()
+
+
 class BaseAssets(Media):
     """
     Base class to manage JavaScript and CSS assets for pages and sections. Use
