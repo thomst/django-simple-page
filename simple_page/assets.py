@@ -28,9 +28,9 @@ def get_assets(obj):
 
 class Assets(Media):
     """
-    Base class to manage JavaScript and CSS assets for pages and sections. Use
-    this class to define js and css attributes as you would do in a django form
-    `Media` classes.
+    Base class for css and javascript media definitions. It works exactly as the
+    `Media` class for django forms: Simply set the css and js class attributes
+    and register your Assets for your pages or sections.
     """
     def __init__(self):
         css = getattr(self, 'css', {})
