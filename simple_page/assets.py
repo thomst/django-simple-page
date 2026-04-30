@@ -21,12 +21,12 @@ def register(assets_cls, model_cls=None):
 def get_assets(obj):
     """
     Return an assets instance for the object. Check for a registered assets
-    class. Use :class:`~.BaseAssets` as a fallback.
+    class. Use :class:`~.Assets` as a fallback.
     """
-    return REGISTRY.get(type(obj), BaseAssets)()
+    return REGISTRY.get(type(obj), Assets)()
 
 
-class BaseAssets(Media):
+class Assets(Media):
     """
     Base class to manage JavaScript and CSS assets for pages and sections. Use
     this class to define js and css attributes as you would do in a django form

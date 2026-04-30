@@ -1,14 +1,14 @@
 from simple_page import assets
 
 
-class ExtraPageAssets(assets.BaseAssets):
+class ExtraPageAssets(assets.Assets):
     css = {
         'all': ['test_project/extra_page.css']
     }
     js = ['test_project/extra_page.js']
 
 
-class TextSectionAssets(assets.BaseAssets):
+class TextSectionAssets(assets.Assets):
     css = {
         'all': ['test_project/text_section.css']
     }
