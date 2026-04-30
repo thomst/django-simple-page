@@ -32,8 +32,8 @@ Each page or section can have its own renderer providing a specific logic.
 ### Assets
 
 If there are any specific css or javascript files for your pages or sections,
-simply sublcass the BaseAssets and register it with your page or section class.
-The BaseAssets class is what you know from django as a Media class for forms.
+simply sublcass the Assets and register it with your page or section class.
+The Assets class is what you know from django as a Media class for forms.
 And it is just as easy as that: defining js and css properties in the familiar
 format.
 
