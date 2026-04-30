@@ -26,9 +26,9 @@ def register(renderer_cls, model_cls=None):
 
 def get_renderer(obj):
     """
-    Return an initialized renderer for the object. Check for a registered
-    renderer class for the objects type. And use the :class:`~.PageRenderer` or
-    the :class:`~.SectionRenderer` instead - depending on the object's type.
+    Return a renderer instance for the object. Check for a registered renderer
+    class. Use the :class:`~.PageRenderer` or the :class:`~.SectionRenderer`
+    instead - depending on the object's type.
     """
     default_renderer = PageRenderer if isinstance(obj, Page) else SectionRenderer
     return REGISTRY.get(type(obj), default_renderer)(obj)
