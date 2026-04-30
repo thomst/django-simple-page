@@ -26,9 +26,9 @@ def register(renderer_cls, model_cls=None):
 class Renderer:
     """
     Base renderer class. This class provides the basic functionality to render a
-    Page or Section instance using a template. It can be extended to add custom
-    rendering logic or to use different templates. A child class can change the
-    whole rendering logic as long as the `render` method returns valid HTML.
+    Page or Section instance. It uses the proven triad of `get_template_name`,
+    `get_context` and `render` methods. But can be customized to any extend. All
+    a child class has to provide is a `render` method returning valid HTML.
     """
     template_name = None
     base_type_name = None
@@ -38,10 +38,16 @@ class Renderer:
 
     def get_template_name(self):
         """
-        Return the template to use for this model. If template_name is set it
-        will be used. If not the template name will be the class name as snake
-        case. Templates for pages will be looked up in a `pages` folder, and for
-        sections in a `sections` folder.
+        Return the name of the template. If :attr:`~.template_name` is set it
+        will be returned. Otherwise the template name will be constructed as
+        follows:
+
+        - Using 'pages' or 'sections' as folder - depending on the object's type.
+        - And converting the object's class name to snake case with a html
+          suffix as file name.
+
+        For example the template name for a MyTextSection class would be
+        `'sections/my_text_section.html'`.
         """
         if self.template_name:
             return self.template_name
@@ -54,8 +60,8 @@ class Renderer:
     def get_context(self, request, extra_context=None):
         """
         Return the context to use when rendering the template. By default the
-        context will contain the object being rendered as `page` or `section`
-        depending on the base type.
+        context will contain the object being rendered as 'page' or 'section' -
+        depending on the object's type.
         """
         context = extra_context or {}
         context[self.base_type_name] = self.obj
@@ -63,8 +69,8 @@ class Renderer:
 
     def render(self, request, extra_context=None):
         """
-        Return the rendered HTML using `get_template_name` and `get_context`
-        methods.
+        Return the rendered HTML using the template and context returned by
+        :meth:`~.get_template_name` and :meth:`~.get_context` methods.
         """
         template = get_template(self.get_template_name())
         context = self.get_context(extra_context)
