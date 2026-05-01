@@ -17,7 +17,7 @@ class Section(models.Model):
     def __str__(self):
         if type(self) is Section:
             child_self = self._meta.model.objects.get_subclass(id=self.id)
-            return f"{child_self.__class__.__name__}: {child_self}"
+            return f"{child_self._meta.verbose_name}: {child_self}"
         else:
             return super().__str__()
 
