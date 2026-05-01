@@ -32,8 +32,8 @@ Each page or section can have its own renderer providing a specific logic.
 ### Assets
 
 If there are any specific css or javascript files for your pages or sections,
-simply sublcass the Assets and register it with your page or section class.
-The Assets class is what you know from django as a Media class for forms.
+simply sublcass the Assets class and register it with your page or section
+class. The Assets class is what you know from django as a Media class for forms.
 And it is just as easy as that: defining js and css properties in the familiar
 format.
 
@@ -45,8 +45,8 @@ you. You define your pages with regions, your sections as content, your
 rendering logic and your assets and put everything together like building
 blocks.
 
-Let simple projects be simple, and advanced projects having their way. So be
-helpful. But not obtrusive. That's what django-simple-page wants to be.
+Let simple projects be simple, and advanced projects having their way. So...
+being helpful, but not obtrusive. That's what django-simple-page wants to do.
 
 
 ## Installation
