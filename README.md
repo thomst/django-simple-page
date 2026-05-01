@@ -6,6 +6,8 @@
 
 A simple and straight forward cms buildkit for django.
 
+See the **[docs](https://thomst.github.io/django-simple-page/)**.
+
 ## Features
 
 - **Tree structured Pages**: By django-mptt.
