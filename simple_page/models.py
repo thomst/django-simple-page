@@ -1,5 +1,3 @@
-import re
-
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils.managers import InheritanceManager
 
