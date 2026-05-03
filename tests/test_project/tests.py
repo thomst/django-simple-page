@@ -34,10 +34,10 @@ class TestDataMixin:
 
 class SimplePageTests(TestDataMixin, TestCase):
     def test_renderer_registry(self):
-        self.assertIn(TextSection, RENDERER_REGISTRY)
-        self.assertIn(ExtraPage, RENDERER_REGISTRY)
-        self.assertTrue(issubclass(RENDERER_REGISTRY[TextSection], TextSectionRenderer))
-        self.assertTrue(issubclass(RENDERER_REGISTRY[ExtraPage], ExtraPageRenderer))
+        self.assertIn((TextSection,), RENDERER_REGISTRY)
+        self.assertIn((ExtraPage,), RENDERER_REGISTRY)
+        self.assertTrue(issubclass(RENDERER_REGISTRY[(TextSection,)], TextSectionRenderer))
+        self.assertTrue(issubclass(RENDERER_REGISTRY[(ExtraPage,)], ExtraPageRenderer))
 
     def test_assets_registry(self):
         self.assertIn(TextSection, ASSETS_REGISTRY)
@@ -47,7 +47,7 @@ class SimplePageTests(TestDataMixin, TestCase):
 
     def test_page_renderer(self):
         page = ExtraPage.objects.all()[0]
-        renderer = RENDERER_REGISTRY[type(page)](page)
+        renderer = RENDERER_REGISTRY[(type(page),)](page)
         template_name = renderer.get_template_name()
         context = renderer.get_context()
         html = renderer.render()

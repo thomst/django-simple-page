@@ -6,33 +6,78 @@ from .models import Page
 
 REGISTRY = dict()
 
-def register(renderer_cls, model_cls=None):
+def register(renderer_cls, model_cls=None, page_type=None, region=None):
     """
-    Register an :class:`~.Renderer` class for a page or section model. This
-    function can also be used as a decorator for your model class::
+    Register an :class:`~.Renderer` class for a page or section model. Section
+    renderer can be registered for specific page types or regions.
 
-        @renderer.register(FancySectionRenderer):
-        class FancySection(Section):
+    This function can also be used as a decorator for your model class::
+
+        @renderer.register(FancyPageRenderer)
+        class FancyPage(Page):
             ...
+
+    For a :class:`~.simple_page.models.Section` class you might want to register
+    renderer for specific page types or regions. This can be done by using the
+    `page_type` and `region` parameter::
+
+        @renderer.register(MainSectionRenderer, region='main')
+        @renderer.register(FancySectionRenderer, page_type=FancyPage,
+        region='main') class FancySection(Section):
+            ...
+
+    In this example the `FancySectionRenderer` will be choosen if the section
+    will be shown on a `FancyPage` in a 'main' region. The `MainSectionRenderer`
+    will be choosen for the 'main' region on whatever page else. And for all
+    other regions on all other pages the default :class:`~.SectionRenderer` will
+    be used. See :func:`~.get_renderer`.
     """
     def _register(model_cls):
-        REGISTRY[model_cls] = renderer_cls
+        key = [k for k in [model_cls, page_type, region] if k]
+        REGISTRY[tuple(key)] = renderer_cls
         return model_cls
 
+    # Usage as function.
     if model_cls:
         _register(model_cls)
+
+    # Usage as decorator.
     else:
         return _register
 
 
-def get_renderer(obj):
+def get_renderer(obj, page_type=None, region=None):
     """
     Return a renderer instance for the object. Check for a registered renderer
     class. Use the :class:`~.PageRenderer` or the :class:`~.SectionRenderer`
-    instead - depending on the object's type.
+    as fallback - depending on the object's type.
+
+    For sections we look for a registered renderer in this order:
+    * page-type and region specific
+    * only region specific
+    * only page-type specific
+    * not page-type and region specific
+
+    :param obj: a section or page instance
+    :type obj: :class:`~.simple_page.models.Section` or :class:`~.simple_page.models.Page`
+    :param page_type: page-type a section will be rendererd for - *only for sections*
+    :type page_type: :class:`~.simple_page.models.Page`
+    :param str region: name of the region the section  will be rendered in - *only for sections*
+    :return: render class
+    :rtype: :class:`~.Renderer`
     """
+    keys = [
+        (type(obj), page_type, region),
+        (type(obj), region),
+        (type(obj), page_type),
+        (type(obj),),
+    ]
+    for key in keys:
+        if key in REGISTRY:
+            return REGISTRY[key]
+
     default_renderer = PageRenderer if isinstance(obj, Page) else SectionRenderer
-    return REGISTRY.get(type(obj), default_renderer)
+    return default_renderer
 
 
 class Renderer:
