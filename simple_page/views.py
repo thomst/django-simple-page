@@ -9,4 +9,5 @@ def page_view(request, slug, **kwargs):
     View function to render a page by its slug.
     """
     page = get_object_or_404(Page, slug=slug).resolve_obj()
-    return HttpResponse(get_renderer(page).render(request, **kwargs))
+    renderer_cls = get_renderer(page)
+    return HttpResponse(renderer_cls(page, request, **kwargs).render())

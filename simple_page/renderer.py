@@ -32,7 +32,7 @@ def get_renderer(obj):
     instead - depending on the object's type.
     """
     default_renderer = PageRenderer if isinstance(obj, Page) else SectionRenderer
-    return REGISTRY.get(type(obj), default_renderer)(obj)
+    return REGISTRY.get(type(obj), default_renderer)
 
 
 class Renderer:
@@ -44,8 +44,10 @@ class Renderer:
     """
     template_name = None
 
-    def __init__(self, obj):
+    def __init__(self, obj, request=None, **kwargs):
         self.obj = obj
+        self.request = request
+        self.kwargs = kwargs
 
     def get_template_name(self):
         """
@@ -68,24 +70,24 @@ class Renderer:
             folder = 'pages' if isinstance(self.obj, Page) else 'sections'
             return f'{folder}/{template_name}.html'
 
-    def get_context(self, *args, **kwargs):
+    def get_context(self):
         """
         Return the context to use when rendering the template. By default the
         context will contain the object being rendered as 'page' or 'section' -
         depending on the object's type.
         """
-        context = kwargs.get('extra_context', dict())
+        context = self.kwargs.get('extra_context', dict())
         obj_type = 'page' if isinstance(self.obj, Page) else 'section'
         context[obj_type] = self.obj
         return context
 
-    def render(self, *args, **kwargs):
+    def render(self):
         """
         Return the rendered HTML using the template and context returned by
         :meth:`~.get_template_name` and :meth:`~.get_context` methods.
         """
         template = get_template(self.get_template_name())
-        context = self.get_context(*args, **kwargs)
+        context = self.get_context()
         return template.render(context)
 
 
@@ -100,23 +102,25 @@ class PageRenderer(Renderer):
     Renderer for Page instances.
     """
 
-    def render_section(self, section, *args, **kwargs):
+    def render_section(self, section, region):
         """
         Return a section rendered as html.
         """
-        return get_renderer(section).render(*args, **kwargs)
+        renderer_cls = get_renderer(section)
+        renderer = renderer_cls(section, self.request, **self.kwargs)
+        return renderer.render()
 
-    def get_section_data(self, section, *args, **kwargs):
+    def get_section_data(self, section, region):
         """
         Return a dictonary holding the section as object and as rendered html
         using 'obj' and 'html' as keys.
         """
         return dict(
             obj=section,
-            html=self.render_section(section, *args, **kwargs)
+            html=self.render_section(section, region)
         )
 
-    def get_region_data(self, name, title, *args, **kwargs):
+    def get_region_data(self, name, title):
         """
         Return a dictonary with the name, the title and the sections of a
         region. The sections will be a dictonary of the section object and its
@@ -124,11 +128,11 @@ class PageRenderer(Renderer):
         """
         region = {'title': title, 'name': name, 'sections': []}
         for section in getattr(self.obj, name):
-            section_data = self.get_section_data(section, *args, **kwargs)
+            section_data = self.get_section_data(section, name)
             region['sections'].append(section_data)
         return region
 
-    def get_assets(self, *args, **kwargs):
+    def get_assets(self):
         """
         Return an :class:`~.simple_page.assets.Assets` instance which holding
         all the assets from the page and its sections.
@@ -138,7 +142,7 @@ class PageRenderer(Renderer):
             media += get_assets(section)
         return media
 
-    def get_context(self, *args, **kwargs):
+    def get_context(self):
         """
         Add regions and media assets to the context.
 
@@ -149,15 +153,15 @@ class PageRenderer(Renderer):
         Media assets will be the merged assets of the page and all its sections.
         See :meth:`~.get_assets`.
         """
-        context = super().get_context(*args, **kwargs)
+        context = super().get_context()
 
         # Add regions to the context.
         context['regions'] = []
         for name, title in self.obj.get_regions():
-            context[name] = self.get_region_data(name, title, *args, **kwargs)
+            context[name] = self.get_region_data(name, title)
             context['regions'].append(context[name])
 
         # Add media to the context.
-        context['media'] = self.get_assets(*args, **kwargs)
+        context['media'] = self.get_assets()
 
         return context

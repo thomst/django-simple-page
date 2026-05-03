@@ -49,8 +49,8 @@ class SimplePageTests(TestDataMixin, TestCase):
         page = ExtraPage.objects.all()[0]
         renderer = RENDERER_REGISTRY[type(page)](page)
         template_name = renderer.get_template_name()
-        context = renderer.get_context(None)
-        html = renderer.render(None)
+        context = renderer.get_context()
+        html = renderer.render()
         self.assertEqual(template_name, 'pages/extra_page.html')
         self.assertIn('special_info', context)
         self.assertIn(context['special_info'], html)
