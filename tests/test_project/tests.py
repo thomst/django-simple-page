@@ -1,3 +1,5 @@
+import copy
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -5,12 +7,9 @@ from django.contrib.contenttypes.models import ContentType
 
 from simple_page.models import Page, PageSection, Section
 from simple_page import renderer
-from simple_page.renderer import REGISTRY as RENDERER_REGISTRY
-from simple_page.renderer import get_page_renderer, get_section_renderer
-from simple_page.assets import REGISTRY as ASSETS_REGISTRY
+from simple_page import assets
 
-from .models import TextSection, TextWithTitleSection, MainPage, ExtraPage
-from .renderer import TextSectionRenderer, ExtraPageRenderer
+from .models import TextSection, MainPage, ExtraPage
 from .assets import TextSectionAssets, ExtraPageAssets
 
 
@@ -34,7 +33,25 @@ class TestDataMixin:
             page.save()
 
 
-class RendererTests(TestDataMixin, TestCase):
+class ResetRegistryMixin:
+    REGISTRY = None
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        # Save original registry and set it back in tearDownClass.
+        cls.original_registry = copy.deepcopy(cls.REGISTRY)
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        for key, value in cls.original_registry.items():
+            cls.REGISTRY[key] = value
+
+
+class RendererRegistryTests(ResetRegistryMixin, TestDataMixin, TestCase):
+    REGISTRY = renderer.REGISTRY
+
     def test_page_renderer_registry(self):
         page = MainPage.objects.all()[0]
         renderer_cls = type('TestPageRenderer', (renderer.PageRenderer,), dict())
@@ -63,18 +80,47 @@ class RendererTests(TestDataMixin, TestCase):
         self.assertEqual(renderer_cls_three, renderer.get_section_renderer(section, main_page, 'sidebar'))
         self.assertEqual(renderer_cls_four, renderer.get_section_renderer(section, extra_page, 'sidebar'))
 
-    def test_assets_registry(self):
-        self.assertIn(TextSection, ASSETS_REGISTRY)
-        self.assertIn(ExtraPage, ASSETS_REGISTRY)
-        self.assertTrue(issubclass(ASSETS_REGISTRY[TextSection], TextSectionAssets))
-        self.assertTrue(issubclass(ASSETS_REGISTRY[ExtraPage], ExtraPageAssets))
+
+class AssetsRegistryTests(ResetRegistryMixin, TestDataMixin, TestCase):
+    REGISTRY = assets.REGISTRY
+
+    def test_page_assets_registry(self):
+        page = MainPage.objects.all()[0]
+        assets_cls = type('TestPageAssets', (assets.Assets,), dict())
+        assets.register(assets_cls, MainPage)
+        self.assertEqual(assets_cls, assets.get_page_assets(page))
+
+    def test_section_assets_register(self):
+        section = TextSection.objects.all()[0]
+        main_page = MainPage.objects.all()[0]
+        extra_page = ExtraPage.objects.all()[0]
+
+        # Register assets classes for TextSection.
+        assets_cls_one = type('TestSectionOneAssets', (assets.Assets,), dict())
+        assets_cls_two = type('TestSectionTwoAssets', (assets.Assets,), dict())
+        assets_cls_three = type('TestSectionThreeAssets', (assets.Assets,), dict())
+        assets_cls_four = type('TestSectionFourAssets', (assets.Assets,), dict())
+        assets.register(assets_cls_one, TextSection, context=(MainPage, 'main'))
+        assets.register(assets_cls_two, TextSection, context='footer')
+        assets.register(assets_cls_three, TextSection, context=MainPage)
+        assets.register(assets_cls_four, TextSection)
+
+        # Check the get_section_assets function.
+        self.assertEqual(assets_cls_one, assets.get_section_assets(section, main_page, 'main'))
+        self.assertEqual(assets_cls_two, assets.get_section_assets(section, main_page, 'footer'))
+        self.assertEqual(assets_cls_two, assets.get_section_assets(section, extra_page, 'footer'))
+        self.assertEqual(assets_cls_three, assets.get_section_assets(section, main_page, 'sidebar'))
+        self.assertEqual(assets_cls_four, assets.get_section_assets(section, extra_page, 'sidebar'))
+
+
+class PageRendererTests(TestDataMixin, TestCase):
 
     def test_page_renderer(self):
         page = ExtraPage.objects.all()[0]
-        renderer = get_page_renderer(page)(page)
-        template_name = renderer.get_template_name()
-        context = renderer.get_context()
-        html = renderer.render()
+        page_renderer = renderer.get_page_renderer(page)(page)
+        template_name = page_renderer.get_template_name()
+        context = page_renderer.get_context()
+        html = page_renderer.render()
         self.assertEqual(template_name, 'pages/extra_page.html')
         self.assertIn('special_info', context)
         self.assertIn(context['special_info'], html)

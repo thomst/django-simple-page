@@ -1,6 +1,6 @@
 import re
 from django.template.loader import get_template
-from .assets import get_assets
+from .assets import get_page_assets, get_section_assets, Assets
 from .models import Page
 
 
@@ -207,14 +207,14 @@ class PageRenderer(Renderer):
             region['sections'].append(section_data)
         return region
 
-    def get_assets(self):
+    def get_assets(self, region):
         """
         Return an :class:`~.simple_page.assets.Assets` instance which holding
-        all the assets from the page and its sections.
+        all the assets from the sections of a given region.
         """
-        media = get_assets(self.obj)
-        for section in self.obj.sections.select_subclasses():
-            media += get_assets(section)
+        media = Assets()
+        for section in getattr(self.obj, region):
+            media += get_section_assets(section, self.obj, region)()
         return media
 
     def get_context(self):
@@ -230,13 +230,12 @@ class PageRenderer(Renderer):
         """
         context = super().get_context()
 
-        # Add regions to the context.
+        # Add regions, sections and media to the context.
         context['regions'] = []
+        context['media'] = get_page_assets(self.obj)()
         for name, title in self.obj.get_regions():
             context[name] = self.get_region_data(name, title)
             context['regions'].append(context[name])
-
-        # Add media to the context.
-        context['media'] = self.get_assets()
+            context['media'] += self.get_assets(name)
 
         return context
