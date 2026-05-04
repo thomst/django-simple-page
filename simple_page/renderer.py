@@ -74,9 +74,9 @@ def get_section_renderer(section, page=None, region=None):
     We look for a registered renderer in this order:
 
     * page-type and region specific
-    * only region specific
-    * only page-type specific
-    * not page-type and region specific
+    * region specific
+    * page-type specific
+    * neither page-type nor region specific
 
     The first one found will be returned. Otherwise the
     :class:`~.SectionRenderer` is used as fallback.
