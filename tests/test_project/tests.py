@@ -4,7 +4,9 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 
 from simple_page.models import Page, PageSection, Section
+from simple_page import renderer
 from simple_page.renderer import REGISTRY as RENDERER_REGISTRY
+from simple_page.renderer import get_page_renderer, get_section_renderer
 from simple_page.assets import REGISTRY as ASSETS_REGISTRY
 
 from .models import TextSection, TextWithTitleSection, MainPage, ExtraPage
@@ -32,12 +34,34 @@ class TestDataMixin:
             page.save()
 
 
-class SimplePageTests(TestDataMixin, TestCase):
-    def test_renderer_registry(self):
-        self.assertIn((TextSection,), RENDERER_REGISTRY)
-        self.assertIn((ExtraPage,), RENDERER_REGISTRY)
-        self.assertTrue(issubclass(RENDERER_REGISTRY[(TextSection,)], TextSectionRenderer))
-        self.assertTrue(issubclass(RENDERER_REGISTRY[(ExtraPage,)], ExtraPageRenderer))
+class RendererTests(TestDataMixin, TestCase):
+    def test_page_renderer_registry(self):
+        page = MainPage.objects.all()[0]
+        renderer_cls = type('TestPageRenderer', (renderer.PageRenderer,), dict())
+        renderer.register(renderer_cls, MainPage)
+        self.assertEqual(renderer_cls, renderer.get_page_renderer(page))
+
+    def test_section_renderer_register(self):
+        section = TextSection.objects.all()[0]
+        main_page = MainPage.objects.all()[0]
+        extra_page = ExtraPage.objects.all()[0]
+
+        # Register renderer classes for TextSection.
+        renderer_cls_one = type('TestSectionOneRenderer', (renderer.SectionRenderer,), dict())
+        renderer_cls_two = type('TestSectionTwoRenderer', (renderer.SectionRenderer,), dict())
+        renderer_cls_three = type('TestSectionThreeRenderer', (renderer.SectionRenderer,), dict())
+        renderer_cls_four = type('TestSectionFourRenderer', (renderer.SectionRenderer,), dict())
+        renderer.register(renderer_cls_one, TextSection, page_type=MainPage, region='main')
+        renderer.register(renderer_cls_two, TextSection, region='footer')
+        renderer.register(renderer_cls_three, TextSection, page_type=MainPage)
+        renderer.register(renderer_cls_four, TextSection)
+
+        # Check the get_section_renderer function.
+        self.assertEqual(renderer_cls_one, renderer.get_section_renderer(section, main_page, 'main'))
+        self.assertEqual(renderer_cls_two, renderer.get_section_renderer(section, main_page, 'footer'))
+        self.assertEqual(renderer_cls_two, renderer.get_section_renderer(section, extra_page, 'footer'))
+        self.assertEqual(renderer_cls_three, renderer.get_section_renderer(section, main_page, 'sidebar'))
+        self.assertEqual(renderer_cls_four, renderer.get_section_renderer(section, extra_page, 'sidebar'))
 
     def test_assets_registry(self):
         self.assertIn(TextSection, ASSETS_REGISTRY)
@@ -47,7 +71,7 @@ class SimplePageTests(TestDataMixin, TestCase):
 
     def test_page_renderer(self):
         page = ExtraPage.objects.all()[0]
-        renderer = RENDERER_REGISTRY[(type(page),)](page)
+        renderer = get_page_renderer(page)(page)
         template_name = renderer.get_template_name()
         context = renderer.get_context()
         html = renderer.render()
@@ -63,6 +87,9 @@ class SimplePageTests(TestDataMixin, TestCase):
             self.assertIn(region, context)
             self.assertIn('sections', context[region])
             self.assertIn(context[region], context['regions'])
+
+
+class PageTests(TestDataMixin, TestCase):
 
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
