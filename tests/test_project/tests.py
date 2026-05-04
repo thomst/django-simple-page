@@ -51,9 +51,9 @@ class RendererTests(TestDataMixin, TestCase):
         renderer_cls_two = type('TestSectionTwoRenderer', (renderer.SectionRenderer,), dict())
         renderer_cls_three = type('TestSectionThreeRenderer', (renderer.SectionRenderer,), dict())
         renderer_cls_four = type('TestSectionFourRenderer', (renderer.SectionRenderer,), dict())
-        renderer.register(renderer_cls_one, TextSection, page_type=MainPage, region='main')
-        renderer.register(renderer_cls_two, TextSection, region='footer')
-        renderer.register(renderer_cls_three, TextSection, page_type=MainPage)
+        renderer.register(renderer_cls_one, TextSection, context=(MainPage, 'main'))
+        renderer.register(renderer_cls_two, TextSection, context='footer')
+        renderer.register(renderer_cls_three, TextSection, context=MainPage)
         renderer.register(renderer_cls_four, TextSection)
 
         # Check the get_section_renderer function.

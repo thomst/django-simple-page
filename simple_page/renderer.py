@@ -6,7 +6,7 @@ from .models import Page
 
 REGISTRY = dict()
 
-def register(renderer_cls, model_cls=None, page_type=None, region=None):
+def register(renderer_cls, model_cls=None, context=None):
     """
     Register an :class:`~.Renderer` class for a page or section model. This
     function can also be used as a decorator for your model class::
@@ -15,12 +15,13 @@ def register(renderer_cls, model_cls=None, page_type=None, region=None):
         class FancyPage(Page):
             ...
 
-    For a :class:`~.simple_page.models.Section` class you might want to register
-    renderer for specific page types or regions. This can be done by using the
-    `page_type` and `region` parameter::
+    For :class:`~.simple_page.models.Section` classes it is possible to define a
+    context in which a renderer should be used. A context can be a page type, a
+    region name or a tuple of page typen and region name. You can register
+    multiple renderer classes with different contexts for a section::
 
-        @renderer.register(MainSectionRenderer, region='main')
-        @renderer.register(FancySectionRenderer, page_type=FancyPage, region='main')
+        @renderer.register(MainSectionRenderer, context='main')
+        @renderer.register(FancySectionRenderer, context=(FancyPage, 'main'))
         class FancySection(Section):
             ...
 
@@ -29,13 +30,20 @@ def register(renderer_cls, model_cls=None, page_type=None, region=None):
     be used for all 'main' regions on all other pages. And in all other contexts
     :class:`~.SectionRenderer` will be used. See also
     :func:`~.get_section_renderer`.
+
+    :param renderere_cls: the renderer class to be registered
+    :type renderer_cls: :class:`~.Renderer`
+    :param model_cls: the model for which the renderer should be used
+    :type model_cls: :class:`~simple_page.models.Page` or :class:`~simple_page.models.Section`
+    :param context: a context in which a section should be rendered with the renderer class
+    :type context: :class:`~simple_page.models.Page` or str or tuple
     """
     def _register(model_cls):
         if issubclass(model_cls, Page):
             REGISTRY[model_cls] = renderer_cls
         else:
             REGISTRY[model_cls] = REGISTRY.get(model_cls) or dict()
-            REGISTRY[model_cls][(page_type, region)] = renderer_cls
+            REGISTRY[model_cls][context] = renderer_cls
         return model_cls
 
     # Usage as function.
@@ -84,9 +92,9 @@ def get_section_renderer(section, page=None, region=None):
     if type(section) in REGISTRY:
         keys = [
             (type(page), region),
-            (None, region),
-            (type(page), None),
-            (None, None)
+            region,
+            type(page),
+            None,
         ]
         for key in keys:
             if key in REGISTRY[type(section)]:

@@ -35,7 +35,7 @@ class ExtraPage(Page):
 
 
 @renderer.register(TextSectionRenderer)
-@renderer.register(ExtraSectionRenderer, page_type=ExtraPage, region='extra')
+@renderer.register(ExtraSectionRenderer, context=(ExtraPage, 'extra'))
 class TextSection(Section):
 
     text = models.TextField(blank=True)
