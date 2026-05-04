@@ -157,12 +157,24 @@ class Renderer:
 class SectionRenderer(Renderer):
     """
     Renderer for Section instances.
+
+    :param obj: section object
+    :type obj: :class:`~simple_page.models.Section`
+    :param request: request object (default: None)
+    :type request: :class:`~django.http.HttpRequest`
+    :param kwargs: Additional data about the rendering context as keyword arguments
     """
 
 
 class PageRenderer(Renderer):
     """
     Renderer for Page instances.
+
+    :param obj: page object
+    :type obj: :class:`~simple_page.models.Page`
+    :param request: request object (default: None)
+    :type request: :class:`~django.http.HttpRequest`
+    :param kwargs: Additional data about the rendering context as keyword arguments
     """
 
     def render_section(self, section, region):
