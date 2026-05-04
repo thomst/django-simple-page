@@ -52,9 +52,9 @@ def get_page_renderer(page):
     Return the registered renderer for the page or :class:`~.PageRenderer`.
 
     :param page: page instance to be rendered
-    :type page: :class:`~simple_page.models.Page
+    :type page: :class:`~simple_page.models.Page`
     :return: renderer class
-    :rtype: :class:`~.PageRenderer
+    :rtype: :class:`~.PageRenderer`
     """
     return REGISTRY.get(type(page), PageRenderer)
 
