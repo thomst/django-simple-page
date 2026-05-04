@@ -90,13 +90,8 @@ def get_section_renderer(section, page=None, region=None):
     :rtype: :class:`~.SectionRenderer`
     """
     if type(section) in REGISTRY:
-        keys = [
-            (type(page), region),
-            region,
-            type(page),
-            None,
-        ]
-        for key in keys:
+        # One of these keys must have been used to register a renderer class.
+        for key in [(type(page), region), region, type(page), None]:
             if key in REGISTRY[type(section)]:
                 return REGISTRY[type(section)][key]
     else:
