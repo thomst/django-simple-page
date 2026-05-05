@@ -135,14 +135,10 @@ class Renderer:
 
     def get_context(self):
         """
-        Return the context to use when rendering the template. By default the
-        context will contain the object being rendered as 'page' or 'section' -
-        depending on the object's type.
+        Return the context for rendering. This method will be implemented by
+        :class:`~.SectionRenderer` and :class:`~.PageRenderer`.
         """
-        context = self.kwargs.get('extra_context', dict())
-        obj_type = 'page' if isinstance(self.obj, Page) else 'section'
-        context[obj_type] = self.obj
-        return context
+        raise NotImplementedError
 
     def render(self):
         """
@@ -164,6 +160,18 @@ class SectionRenderer(Renderer):
     :type request: :class:`~django.http.HttpRequest`
     :param kwargs: Additional data about the rendering context as keyword arguments
     """
+
+    def get_context(self):
+        """
+        Add section object as 'section' to the context.
+
+        :return: rendering context
+        :rtype: dict
+        """
+        context = self.kwargs.get('extra_context', dict())
+        context['section'] = self.obj
+        return context
+
 
 
 class PageRenderer(Renderer):
