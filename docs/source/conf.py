@@ -41,6 +41,8 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = []
 
+# Toctree file
+# master_doc = "topics/contents"
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -61,3 +63,19 @@ autodoc_default_options = {
 intersphinx_mapping = {
     'django': ('https://docs.djangoproject.com/en/stable/', 'http://docs.djangoproject.com/en/stable/_objects/'),
     }
+
+# Theme options.
+html_theme_options = {
+    'home_page_in_toc': True,
+    'show_toc_level': 2,
+}
+
+html_sidebars = {
+    "**": [
+        "navbar-logo.html",
+        "icon-links.html",
+        "current_version.html",
+        "search-button-field.html",
+        "sbt-sidebar-nav.html",
+        ]
+}
