@@ -53,17 +53,13 @@ class SetupRegistryMixin:
     def reset_registries(cls):
         cls.renderer_registry = copy.deepcopy(renderer.REGISTRY)
         cls.assets_registry = copy.deepcopy(assets.REGISTRY)
-        for key in renderer.REGISTRY.copy():
-            del renderer.REGISTRY[key]
-        for key in assets.REGISTRY.copy():
-            del assets.REGISTRY[key]
+        [renderer.REGISTRY.pop(k) for k in renderer.REGISTRY.copy()]
+        [assets.REGISTRY.pop(k) for k in assets.REGISTRY.copy()]
 
     @classmethod
     def restore_registries(cls):
-        for key in renderer.REGISTRY.copy():
-            del renderer.REGISTRY[key]
-        for key in assets.REGISTRY.copy():
-            del assets.REGISTRY[key]
+        [renderer.REGISTRY.pop(k) for k in renderer.REGISTRY.copy()]
+        [assets.REGISTRY.pop(k) for k in assets.REGISTRY.copy()]
         renderer.REGISTRY.update(cls.renderer_registry)
         assets.REGISTRY.update(cls.assets_registry)
 
