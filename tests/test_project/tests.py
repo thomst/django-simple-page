@@ -1,4 +1,7 @@
+import os
 import copy
+import tempfile
+from pathlib import Path
 
 from django.test import TestCase
 from django.urls import reverse
@@ -38,6 +41,7 @@ class SetupRegistryMixin:
     def setUpClass(cls):
         super().setUpClass()
         cls.reset_registries()
+        cls.setup_templates()
         cls.register_page_renderer()
         cls.register_section_renderer()
         cls.register_page_assets()
@@ -47,6 +51,7 @@ class SetupRegistryMixin:
     def tearDownClass(cls):
         super().tearDownClass()
         cls.restore_registries()
+        cls.remove_templates()
 
     @classmethod
     def reset_registries(cls):
@@ -61,6 +66,20 @@ class SetupRegistryMixin:
         [assets.REGISTRY.pop(k) for k in assets.REGISTRY.copy()]
         renderer.REGISTRY.update(cls.renderer_registry)
         assets.REGISTRY.update(cls.assets_registry)
+
+    @classmethod
+    def setup_templates(cls):
+        html = b'<h3>{{ extra }}</h3><p>{{ section.text }}</p>'
+        test_project_dir = Path(__file__).resolve().parent
+        template_dir = test_project_dir / 'templates' / 'sections'
+        template_dir.mkdir(parents=True, exist_ok=True)
+        template_file = tempfile.NamedTemporaryFile(dir=str(template_dir), delete=False)
+        with template_file as cls.template:
+            cls.template.write(html)
+
+    @classmethod
+    def remove_templates(cls):
+        os.remove(cls.template.name)
 
     @classmethod
     def register_page_renderer(cls):
