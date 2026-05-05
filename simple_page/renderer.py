@@ -31,12 +31,12 @@ def register(renderer_cls, model_cls=None, context=None):
     :class:`~.SectionRenderer` will be used. See also
     :func:`~.get_section_renderer`.
 
-    :param renderere_cls: the renderer class to be registered
+    :param renderer_cls: the renderer class to be registered
     :type renderer_cls: :class:`~.Renderer`
     :param model_cls: the model for which the renderer should be used
     :type model_cls: :class:`~simple_page.models.Page` or :class:`~simple_page.models.Section`
     :param context: a context in which a section should be rendered with the renderer class
-    :type context: :class:`~simple_page.models.Page` or str or tuple
+    :type context: :class:`~simple_page.models.Page` or str or tuple of both
     """
     def _register(model_cls):
         if issubclass(model_cls, Page):

@@ -12,6 +12,17 @@ def register(assets_cls, model_cls=None, context=None):
         @assets.register(FancySectionAssets):
         class FancySection(Section):
             ...
+
+    With section models assets could be registered context specific. This works
+    exactly the same way as it does for the renderer
+    :func:`~simple_page.renderer.register` function.
+
+    :param assets_cls: the assets class to be registered
+    :type assets_cls: :class:`~.Assets`
+    :param model_cls: the model for which the renderer should be used
+    :type model_cls: :class:`~simple_page.models.Page` or :class:`~simple_page.models.Section`
+    :param context: a context in which a section should be rendered with the renderer class
+    :type context: :class:`~simple_page.models.Page` or str or tuple of both
     """
     def _register(model_cls):
         if issubclass(model_cls, Page):
@@ -31,6 +42,11 @@ def get_page_assets(page):
     """
     Return an assets instance for the page. Check for a registered assets
     class. Use :class:`~.Assets` as a fallback.
+
+    :param page: page instance to be rendered
+    :type page: :class:`~simple_page.models.Page`
+    :return: assets class
+    :rtype: :class:`~.Assets`
     """
     return REGISTRY.get(type(page), Assets)
 
