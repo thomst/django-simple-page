@@ -10,7 +10,6 @@ from simple_page import renderer
 from simple_page import assets
 
 from .models import TextSection, MainPage, ExtraPage
-from .assets import TextSectionAssets, ExtraPageAssets
 
 
 class FixTestDataMixin:
