@@ -11,6 +11,11 @@ class Section(models.Model):
     This model is the base model for what ever content you want to see on your
     website. It does not has any fields on its own but provides a many-to-many
     relationship to the `Page` model.
+
+    To be able to access the child classes' objects this class uses the
+    InheritanceManager_ of the django-model-utils project.
+
+    .. _InheritanceManager: https://django-model-utils.readthedocs.io/en/latest/managers.html#inheritancemanager
     """
     objects = InheritanceManager()
 
