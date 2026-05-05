@@ -163,24 +163,36 @@ class AssetsRegistryTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
         self.assertEqual(self.section_assets[4], assets.get_section_assets(section, extra_page, 'sidebar'))
 
 
-class PageRendererTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
-
-    def setUp(self):
-        pass
+class PageRendererTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer(self):
-        page = ExtraPage.objects.all()[0]
+        page = MainPage.objects.all()[0]
         page_renderer = renderer.get_page_renderer(page)(page)
         template_name = page_renderer.get_template_name()
         context = page_renderer.get_context()
         html = page_renderer.render()
-        self.assertEqual(template_name, 'pages/extra_page.html')
-        self.assertIn('special_info', context)
-        self.assertIn(context['special_info'], html)
-        self.assertIn(ExtraPageAssets.css, context['media']._css_lists)
-        self.assertIn(TextSectionAssets.css, context['media']._css_lists)
-        self.assertIn(ExtraPageAssets.js, context['media']._js_lists)
-        self.assertIn(TextSectionAssets.js, context['media']._js_lists)
+
+        # Check template and context.
+        self.assertEqual(template_name, 'pages/main_page.html')
+        self.assertIn('extra', context)
+
+        # Check media assets.
+        for i, media in self.section_assets.items():
+            if i == 4:
+                for line in str(media()).splitlines():
+                    self.assertNotIn(line, str(context['media']))
+            else:
+                for line in str(media()).splitlines():
+                    self.assertIn(line, str(context['media']))
+
+        # Check section rendering.
+        for i, rndr in self.section_renderer.items():
+            if i == 4:
+                self.assertNotIn(rndr.extra_data, html)
+            else:
+                self.assertIn(rndr.extra_data, html)
+
+        # Check regions.
         for region, title in page.get_regions():
             self.assertIn(title, html)
             self.assertIn(region, context)
