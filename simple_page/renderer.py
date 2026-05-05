@@ -203,17 +203,17 @@ class PageRenderer(Renderer):
             html=self.render_section(section, region)
         )
 
-    def get_region_data(self, name, title):
+    def get_region_data(self, region, title):
         """
         Return a dictonary with the name, the title and the sections of a
         region. The sections will be a dictonary of the section object and its
         rendered html. See :meth:`~.get_section_data`.
         """
-        region = {'title': title, 'name': name, 'sections': []}
-        for section in getattr(self.obj, name):
-            section_data = self.get_section_data(section, name)
-            region['sections'].append(section_data)
-        return region
+        region_data = {'title': title, 'name': region, 'sections': []}
+        for section in getattr(self.obj, region):
+            section_data = self.get_section_data(section, region)
+            region_data['sections'].append(section_data)
+        return region_data
 
     def get_assets(self, region):
         """
