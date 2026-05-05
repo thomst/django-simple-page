@@ -64,7 +64,12 @@ class SetupRegistryMixin:
 
     @classmethod
     def register_page_renderer(cls):
-        cls.page_renderer = type('TestPageRenderer', (renderer.PageRenderer,), dict())
+        class BaseRenderer(renderer.PageRenderer):
+            def get_context(self):
+                context = super().get_context()
+                context['extra'] = 'extra-data'
+                return context
+        cls.page_renderer = type('MainPageRenderer', (BaseRenderer,), dict())
         renderer.register(cls.page_renderer, MainPage)
 
     @classmethod
@@ -72,9 +77,11 @@ class SetupRegistryMixin:
         cls.section_renderer = dict()
         for i in range(1, 5):
             class BaseRenderer(renderer.SectionRenderer):
+                template_name = cls.template.name
+                extra_data = f'extra-data-{i}'
                 def get_context(self):
                     context = super().get_context()
-                    context['extra'] = f'extra-data-{i}'
+                    context['extra'] = self.extra_data
                     return context
             cls.section_renderer[i] = (type(f'TextSection{i}Renderer', (BaseRenderer,), dict()))
         renderer.register(cls.section_renderer[1], TextSection, context=(MainPage, 'main'))
