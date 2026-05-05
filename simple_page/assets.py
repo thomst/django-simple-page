@@ -15,14 +15,14 @@ def register(assets_cls, model_cls=None, context=None):
 
     With section models assets could be registered context specific. This works
     exactly the same way as it does for the renderer
-    :func:`~simple_page.renderer.register` function.
+    :func:`~.renderer.register` function.
 
     :param assets_cls: the assets class to be registered
     :type assets_cls: :class:`~.Assets`
     :param model_cls: the model for which the renderer should be used
-    :type model_cls: :class:`~simple_page.models.Page` or :class:`~simple_page.models.Section`
+    :type model_cls: :class:`~.models.Page` or :class:`~.models.Section`
     :param context: a context in which a section should be rendered with the renderer class
-    :type context: :class:`~simple_page.models.Page` or str or tuple of both
+    :type context: :class:`~.models.Page` or str or tuple of both
     """
     def _register(model_cls):
         if issubclass(model_cls, Page):
@@ -44,7 +44,7 @@ def get_page_assets(page):
     class. Use :class:`~.Assets` as a fallback.
 
     :param page: page instance to be rendered
-    :type page: :class:`~simple_page.models.Page`
+    :type page: :class:`~.models.Page`
     :return: assets class
     :rtype: :class:`~.Assets`
     """
@@ -66,9 +66,9 @@ def get_section_assets(section, page=None, region=None):
     :class:`~.Assets` is used as fallback.
 
     :param obj: section instance
-    :type obj: :class:`~.simple_page.models.Section`
+    :type obj: :class:`~..models.Section`
     :param page: page the section will be rendered for
-    :type page: :class:`~.simple_page.models.Page`
+    :type page: :class:`~..models.Page`
     :param str region: region the section  will be rendered in
     :return: assets class
     :rtype: :class:`~.Assets`

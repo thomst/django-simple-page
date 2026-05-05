@@ -15,7 +15,7 @@ def register(renderer_cls, model_cls=None, context=None):
         class FancyPage(Page):
             ...
 
-    For :class:`~.simple_page.models.Section` classes it is possible to define a
+    For :class:`~..models.Section` classes it is possible to define a
     context in which a renderer should be used. A context can be a page type, a
     region name or a tuple of page typen and region name. You can register
     multiple renderer classes with different contexts for a section::
@@ -34,9 +34,9 @@ def register(renderer_cls, model_cls=None, context=None):
     :param renderer_cls: the renderer class to be registered
     :type renderer_cls: :class:`~.Renderer`
     :param model_cls: the model for which the renderer should be used
-    :type model_cls: :class:`~simple_page.models.Page` or :class:`~simple_page.models.Section`
+    :type model_cls: :class:`~.models.Page` or :class:`~.models.Section`
     :param context: a context in which a section should be rendered with the renderer class
-    :type context: :class:`~simple_page.models.Page` or str or tuple of both
+    :type context: :class:`~.models.Page` or str or tuple of both
     """
     def _register(model_cls):
         if issubclass(model_cls, Page):
@@ -60,7 +60,7 @@ def get_page_renderer(page):
     Return the registered renderer for the page or :class:`~.PageRenderer`.
 
     :param page: page instance to be rendered
-    :type page: :class:`~simple_page.models.Page`
+    :type page: :class:`~.models.Page`
     :return: renderer class
     :rtype: :class:`~.PageRenderer`
     """
@@ -82,9 +82,9 @@ def get_section_renderer(section, page=None, region=None):
     :class:`~.SectionRenderer` is used as fallback.
 
     :param obj: section instance
-    :type obj: :class:`~.simple_page.models.Section`
+    :type obj: :class:`~..models.Section`
     :param page: page the section will be rendered for
-    :type page: :class:`~.simple_page.models.Page`
+    :type page: :class:`~..models.Page`
     :param str region: region the section  will be rendered in
     :return: renderer class
     :rtype: :class:`~.SectionRenderer`
@@ -155,7 +155,7 @@ class SectionRenderer(Renderer):
     Renderer for Section instances.
 
     :param obj: section object
-    :type obj: :class:`~simple_page.models.Section`
+    :type obj: :class:`~.models.Section`
     :param request: request object (default: None)
     :type request: :class:`~django.http.HttpRequest`
     :param kwargs: Additional data as keyword arguments
@@ -179,7 +179,7 @@ class PageRenderer(Renderer):
     Renderer for Page instances.
 
     :param obj: page object
-    :type obj: :class:`~simple_page.models.Page`
+    :type obj: :class:`~.models.Page`
     :param request: request object (default: None)
     :type request: :class:`~django.http.HttpRequest`
     :param kwargs: Additional data as keyword arguments
@@ -190,7 +190,7 @@ class PageRenderer(Renderer):
         Return a section rendered as html.
 
         :param section: section object
-        :type section: :class:`~simple_page.models.Section`
+        :type section: :class:`~.models.Section`
         :param str region: region name
         :return: rendered html
         :rtype: str
@@ -205,7 +205,7 @@ class PageRenderer(Renderer):
         using 'obj' and 'html' as keys.
 
         :param section: section object
-        :type section: :class:`~simple_page.models.Section`
+        :type section: :class:`~.models.Section`
         :param str region: region name
         :return: section data holding the section object and the rendered html
         :rtype: dict
@@ -234,12 +234,12 @@ class PageRenderer(Renderer):
 
     def get_assets(self, region):
         """
-        Return an :class:`~.simple_page.assets.Assets` instance which holding
+        Return an :class:`~..assets.Assets` instance which holding
         all the assets from the sections of a given region.
 
         :param str region: region name
         :return: assets
-        :rtype: :class:`~simple_page.assets.Assets`
+        :rtype: :class:`~.assets.Assets`
         """
         media = Assets()
         for section in getattr(self.obj, region):
