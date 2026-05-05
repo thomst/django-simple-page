@@ -236,9 +236,9 @@ class PageRenderer(Renderer):
         Media assets will be the merged assets of the page and all its sections.
         See :meth:`~.get_assets`.
         """
-        context = super().get_context()
-
         # Add regions, sections and media to the context.
+        context = self.kwargs.get('extra_context', dict())
+        context['page'] = self.obj
         context['regions'] = []
         context['media'] = get_page_assets(self.obj)()
         for name, title in self.obj.get_regions():
