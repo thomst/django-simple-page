@@ -35,7 +35,7 @@ class FixTestDataMixin:
             page.save()
 
 
-class SetupRegistryMixin:
+class SetupRendererAndAssetsMixin:
 
     @classmethod
     def setUpClass(cls):
@@ -126,7 +126,7 @@ class SetupRegistryMixin:
 
 
 
-class RendererRegistryTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
+class RendererRegistryTests(SetupRendererAndAssetsMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer_registry(self):
         page = MainPage.objects.all()[0]
@@ -144,7 +144,7 @@ class RendererRegistryTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
         self.assertEqual(self.section_renderer[4], renderer.get_section_renderer(section, extra_page, 'sidebar'))
 
 
-class AssetsRegistryTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
+class AssetsRegistryTests(SetupRendererAndAssetsMixin, FixTestDataMixin, TestCase):
 
     def test_page_assets_registry(self):
         page = MainPage.objects.all()[0]
@@ -163,7 +163,7 @@ class AssetsRegistryTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
         self.assertEqual(self.section_assets[4], assets.get_section_assets(section, extra_page, 'sidebar'))
 
 
-class PageRendererTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
+class PageRendererTests(SetupRendererAndAssetsMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer(self):
         page = MainPage.objects.all()[0]
