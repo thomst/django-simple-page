@@ -13,7 +13,7 @@ from .models import TextSection, MainPage, ExtraPage
 from .assets import TextSectionAssets, ExtraPageAssets
 
 
-class TestDataMixin:
+class FixTestDataMixin:
     fixtures = ['testdata.json']
 
     @classmethod
@@ -49,7 +49,7 @@ class ResetRegistryMixin:
             cls.REGISTRY[key] = value
 
 
-class RendererRegistryTests(ResetRegistryMixin, TestDataMixin, TestCase):
+class RendererRegistryTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
     REGISTRY = renderer.REGISTRY
 
     def test_page_renderer_registry(self):
@@ -81,7 +81,7 @@ class RendererRegistryTests(ResetRegistryMixin, TestDataMixin, TestCase):
         self.assertEqual(renderer_cls_four, renderer.get_section_renderer(section, extra_page, 'sidebar'))
 
 
-class AssetsRegistryTests(ResetRegistryMixin, TestDataMixin, TestCase):
+class AssetsRegistryTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
     REGISTRY = assets.REGISTRY
 
     def test_page_assets_registry(self):
@@ -113,7 +113,7 @@ class AssetsRegistryTests(ResetRegistryMixin, TestDataMixin, TestCase):
         self.assertEqual(assets_cls_four, assets.get_section_assets(section, extra_page, 'sidebar'))
 
 
-class PageRendererTests(TestDataMixin, TestCase):
+class PageRendererTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer(self):
         page = ExtraPage.objects.all()[0]
@@ -135,7 +135,7 @@ class PageRendererTests(TestDataMixin, TestCase):
             self.assertIn(context[region], context['regions'])
 
 
-class PageTests(TestDataMixin, TestCase):
+class PageTests(FixTestDataMixin, TestCase):
 
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
@@ -143,7 +143,7 @@ class PageTests(TestDataMixin, TestCase):
             self.assertTrue(isinstance(child, (MainPage, ExtraPage)))
 
 
-class UpdateIndexesTests(TestDataMixin, TestCase):
+class UpdateIndexesTests(FixTestDataMixin, TestCase):
 
     def test_update_indexes_on_deleting(self):
         page = ExtraPage.objects.first()
@@ -174,7 +174,7 @@ class UpdateIndexesTests(TestDataMixin, TestCase):
         self.assertEqual(new_page_section.index, last_index + 1)
 
 
-class AdminBackendTests(TestDataMixin, TestCase):
+class AdminBackendTests(FixTestDataMixin, TestCase):
 
     def setUp(self):
         self.client.force_login(User.objects.first())
@@ -227,7 +227,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
         self.assertInHTML(input, resp.content.decode('utf8'))
 
 
-class PageViewTests(TestDataMixin, TestCase):
+class PageViewTests(FixTestDataMixin, TestCase):
 
     def setUp(self):
         self.client.force_login(User.objects.first())
