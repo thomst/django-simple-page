@@ -167,6 +167,7 @@ class PageRendererTests(SetupRendererAndAssetsMixin, FixTestDataMixin, TestCase)
 
     def test_page_renderer(self):
         page = MainPage.objects.all()[0]
+        section = TextSection.objects.all()[0]
         page_renderer = renderer.get_page_renderer(page)(page)
         template_name = page_renderer.get_template_name()
         context = page_renderer.get_context()
@@ -198,6 +199,23 @@ class PageRendererTests(SetupRendererAndAssetsMixin, FixTestDataMixin, TestCase)
             self.assertIn(region, context)
             self.assertIn('sections', context[region])
             self.assertIn(context[region], context['regions'])
+
+            # Check extra_data in regions
+            for data in context[region]['sections']:
+                if not data['obj'] is section:
+                    continue
+                elif region == 'main':
+                    self.assertIn(self.section_renderer[1].extra_data, data['html'])
+                    self.assertNotIn(self.section_renderer[2].extra_data, data['html'])
+                    self.assertNotIn(self.section_renderer[3].extra_data, data['html'])
+                elif region == 'footer':
+                    self.assertIn(self.section_renderer[2].extra_data, data['html'])
+                    self.assertNotIn(self.section_renderer[1].extra_data, data['html'])
+                    self.assertNotIn(self.section_renderer[3].extra_data, data['html'])
+                elif region == 'sidebar':
+                    self.assertIn(self.section_renderer[3].extra_data, data['html'])
+                    self.assertNotIn(self.section_renderer[1].extra_data, data['html'])
+                    self.assertNotIn(self.section_renderer[2].extra_data, data['html'])
 
 
 class PageTests(FixTestDataMixin, TestCase):
