@@ -34,23 +34,28 @@ class FixTestDataMixin:
 
 
 class ResetRegistryMixin:
-    REGISTRY = None
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         # Save original registry and set it back in tearDownClass.
-        cls.original_registry = copy.deepcopy(cls.REGISTRY)
+        cls.renderer_registry = copy.deepcopy(renderer.REGISTRY)
+        cls.assets_registry = copy.deepcopy(assets.REGISTRY)
 
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        for key, value in cls.original_registry.items():
-            cls.REGISTRY[key] = value
+        for key in renderer.REGISTRY.copy():
+            del renderer.REGISTRY[key]
+        for key, value in cls.renderer_registry.items():
+            renderer.REGISTRY[key] = value
+        for key in assets.REGISTRY.copy():
+            del assets.REGISTRY[key]
+        for key, value in cls.assets_registry.items():
+            assets.REGISTRY[key] = value
 
 
 class RendererRegistryTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
-    REGISTRY = renderer.REGISTRY
 
     def test_page_renderer_registry(self):
         page = MainPage.objects.all()[0]
@@ -82,7 +87,6 @@ class RendererRegistryTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
 
 
 class AssetsRegistryTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
-    REGISTRY = assets.REGISTRY
 
     def test_page_assets_registry(self):
         page = MainPage.objects.all()[0]
