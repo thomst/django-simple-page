@@ -158,7 +158,7 @@ class SectionRenderer(Renderer):
     :type obj: :class:`~simple_page.models.Section`
     :param request: request object (default: None)
     :type request: :class:`~django.http.HttpRequest`
-    :param kwargs: Additional data about the rendering context as keyword arguments
+    :param kwargs: Additional data as keyword arguments
     """
 
     def get_context(self):
@@ -182,12 +182,18 @@ class PageRenderer(Renderer):
     :type obj: :class:`~simple_page.models.Page`
     :param request: request object (default: None)
     :type request: :class:`~django.http.HttpRequest`
-    :param kwargs: Additional data about the rendering context as keyword arguments
+    :param kwargs: Additional data as keyword arguments
     """
 
     def render_section(self, section, region):
         """
         Return a section rendered as html.
+
+        :param section: section object
+        :type section: :class:`~simple_page.models.Section`
+        :param str region: region name
+        :return: rendered html
+        :rtype: str
         """
         renderer_cls = get_section_renderer(section, self.obj, region)
         renderer = renderer_cls(section, self.request, **self.kwargs)
@@ -197,6 +203,12 @@ class PageRenderer(Renderer):
         """
         Return a dictonary holding the section as object and as rendered html
         using 'obj' and 'html' as keys.
+
+        :param section: section object
+        :type section: :class:`~simple_page.models.Section`
+        :param str region: region name
+        :return: section data holding the section object and the rendered html
+        :rtype: dict
         """
         return dict(
             obj=section,
@@ -208,6 +220,11 @@ class PageRenderer(Renderer):
         Return a dictonary with the name, the title and the sections of a
         region. The sections will be a dictonary of the section object and its
         rendered html. See :meth:`~.get_section_data`.
+
+        :param str region: region name
+        :param str tilte: region title
+        :return: region data holding title, name and sections for this region
+        :rtype: dict
         """
         region_data = {'title': title, 'name': region, 'sections': []}
         for section in getattr(self.obj, region):
@@ -219,6 +236,10 @@ class PageRenderer(Renderer):
         """
         Return an :class:`~.simple_page.assets.Assets` instance which holding
         all the assets from the sections of a given region.
+
+        :param str region: region name
+        :return: assets
+        :rtype: :class:`~simple_page.assets.Assets`
         """
         media = Assets()
         for section in getattr(self.obj, region):
@@ -227,7 +248,7 @@ class PageRenderer(Renderer):
 
     def get_context(self):
         """
-        Add regions and media assets to the context.
+        Add page, regions and media assets to the context.
 
         Regions will be added as template variables on their own and as a list
         named 'regions'. Each region is a dictonary of its name, title and its
@@ -235,6 +256,9 @@ class PageRenderer(Renderer):
 
         Media assets will be the merged assets of the page and all its sections.
         See :meth:`~.get_assets`.
+
+        :return: rendering context
+        :rtype: dict
         """
         # Add regions, sections and media to the context.
         context = self.kwargs.get('extra_context', dict())
