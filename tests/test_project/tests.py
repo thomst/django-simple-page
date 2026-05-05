@@ -33,91 +33,119 @@ class FixTestDataMixin:
             page.save()
 
 
-class ResetRegistryMixin:
+class SetupRegistryMixin:
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Save original registry and set it back in tearDownClass.
-        cls.renderer_registry = copy.deepcopy(renderer.REGISTRY)
-        cls.assets_registry = copy.deepcopy(assets.REGISTRY)
+        cls.reset_registries()
+        cls.register_page_renderer()
+        cls.register_section_renderer()
+        cls.register_page_assets()
+        cls.register_section_assets()
 
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
+        cls.restore_registries()
+
+    @classmethod
+    def reset_registries(cls):
+        cls.renderer_registry = copy.deepcopy(renderer.REGISTRY)
+        cls.assets_registry = copy.deepcopy(assets.REGISTRY)
         for key in renderer.REGISTRY.copy():
             del renderer.REGISTRY[key]
-        for key, value in cls.renderer_registry.items():
-            renderer.REGISTRY[key] = value
         for key in assets.REGISTRY.copy():
             del assets.REGISTRY[key]
-        for key, value in cls.assets_registry.items():
-            assets.REGISTRY[key] = value
+
+    @classmethod
+    def restore_registries(cls):
+        for key in renderer.REGISTRY.copy():
+            del renderer.REGISTRY[key]
+        for key in assets.REGISTRY.copy():
+            del assets.REGISTRY[key]
+        renderer.REGISTRY.update(cls.renderer_registry)
+        assets.REGISTRY.update(cls.assets_registry)
+
+    @classmethod
+    def register_page_renderer(cls):
+        cls.page_renderer = type('TestPageRenderer', (renderer.PageRenderer,), dict())
+        renderer.register(cls.page_renderer, MainPage)
+
+    @classmethod
+    def register_section_renderer(cls):
+        cls.section_renderer = dict()
+        for i in range(1, 5):
+            class BaseRenderer(renderer.SectionRenderer):
+                def get_context(self):
+                    context = super().get_context()
+                    context['extra'] = f'extra-data-{i}'
+                    return context
+            cls.section_renderer[i] = (type(f'TextSection{i}Renderer', (BaseRenderer,), dict()))
+        renderer.register(cls.section_renderer[1], TextSection, context=(MainPage, 'main'))
+        renderer.register(cls.section_renderer[2], TextSection, context='footer')
+        renderer.register(cls.section_renderer[3], TextSection, context=MainPage)
+        renderer.register(cls.section_renderer[4], TextSection)
+
+    @classmethod
+    def register_page_assets(cls):
+        cls.page_assets = type('TestPageAssets', (assets.Assets,), dict())
+        assets.register(cls.page_assets, MainPage)
+
+    @classmethod
+    def register_section_assets(cls):
+        cls.section_assets = dict()
+        for i in range(1, 5):
+            attrs = dict(js=[f'text_section_{i}.js'], css=dict(all=[f'text_section_{i}.css']))
+            cls.section_assets[i] = (type(f'TextSection{i}Assets', (assets.Assets,), attrs))
+        assets.register(cls.section_assets[1], TextSection, context=(MainPage, 'main'))
+        assets.register(cls.section_assets[2], TextSection, context='footer')
+        assets.register(cls.section_assets[3], TextSection, context=MainPage)
+        assets.register(cls.section_assets[4], TextSection)
 
 
-class RendererRegistryTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
+
+class RendererRegistryTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer_registry(self):
         page = MainPage.objects.all()[0]
-        renderer_cls = type('TestPageRenderer', (renderer.PageRenderer,), dict())
-        renderer.register(renderer_cls, MainPage)
-        self.assertEqual(renderer_cls, renderer.get_page_renderer(page))
+        self.assertEqual(self.page_renderer, renderer.get_page_renderer(page))
 
     def test_section_renderer_register(self):
         section = TextSection.objects.all()[0]
         main_page = MainPage.objects.all()[0]
         extra_page = ExtraPage.objects.all()[0]
 
-        # Register renderer classes for TextSection.
-        renderer_cls_one = type('TestSectionOneRenderer', (renderer.SectionRenderer,), dict())
-        renderer_cls_two = type('TestSectionTwoRenderer', (renderer.SectionRenderer,), dict())
-        renderer_cls_three = type('TestSectionThreeRenderer', (renderer.SectionRenderer,), dict())
-        renderer_cls_four = type('TestSectionFourRenderer', (renderer.SectionRenderer,), dict())
-        renderer.register(renderer_cls_one, TextSection, context=(MainPage, 'main'))
-        renderer.register(renderer_cls_two, TextSection, context='footer')
-        renderer.register(renderer_cls_three, TextSection, context=MainPage)
-        renderer.register(renderer_cls_four, TextSection)
-
-        # Check the get_section_renderer function.
-        self.assertEqual(renderer_cls_one, renderer.get_section_renderer(section, main_page, 'main'))
-        self.assertEqual(renderer_cls_two, renderer.get_section_renderer(section, main_page, 'footer'))
-        self.assertEqual(renderer_cls_two, renderer.get_section_renderer(section, extra_page, 'footer'))
-        self.assertEqual(renderer_cls_three, renderer.get_section_renderer(section, main_page, 'sidebar'))
-        self.assertEqual(renderer_cls_four, renderer.get_section_renderer(section, extra_page, 'sidebar'))
+        self.assertEqual(self.section_renderer[1], renderer.get_section_renderer(section, main_page, 'main'))
+        self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, main_page, 'footer'))
+        self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, extra_page, 'footer'))
+        self.assertEqual(self.section_renderer[3], renderer.get_section_renderer(section, main_page, 'sidebar'))
+        self.assertEqual(self.section_renderer[4], renderer.get_section_renderer(section, extra_page, 'sidebar'))
 
 
-class AssetsRegistryTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
+class AssetsRegistryTests(SetupRegistryMixin, FixTestDataMixin, TestCase):
 
     def test_page_assets_registry(self):
         page = MainPage.objects.all()[0]
-        assets_cls = type('TestPageAssets', (assets.Assets,), dict())
-        assets.register(assets_cls, MainPage)
-        self.assertEqual(assets_cls, assets.get_page_assets(page))
+        self.assertEqual(self.page_assets, assets.get_page_assets(page))
 
     def test_section_assets_register(self):
         section = TextSection.objects.all()[0]
         main_page = MainPage.objects.all()[0]
         extra_page = ExtraPage.objects.all()[0]
 
-        # Register assets classes for TextSection.
-        assets_cls_one = type('TestSectionOneAssets', (assets.Assets,), dict())
-        assets_cls_two = type('TestSectionTwoAssets', (assets.Assets,), dict())
-        assets_cls_three = type('TestSectionThreeAssets', (assets.Assets,), dict())
-        assets_cls_four = type('TestSectionFourAssets', (assets.Assets,), dict())
-        assets.register(assets_cls_one, TextSection, context=(MainPage, 'main'))
-        assets.register(assets_cls_two, TextSection, context='footer')
-        assets.register(assets_cls_three, TextSection, context=MainPage)
-        assets.register(assets_cls_four, TextSection)
-
         # Check the get_section_assets function.
-        self.assertEqual(assets_cls_one, assets.get_section_assets(section, main_page, 'main'))
-        self.assertEqual(assets_cls_two, assets.get_section_assets(section, main_page, 'footer'))
-        self.assertEqual(assets_cls_two, assets.get_section_assets(section, extra_page, 'footer'))
-        self.assertEqual(assets_cls_three, assets.get_section_assets(section, main_page, 'sidebar'))
-        self.assertEqual(assets_cls_four, assets.get_section_assets(section, extra_page, 'sidebar'))
+        self.assertEqual(self.section_assets[1], assets.get_section_assets(section, main_page, 'main'))
+        self.assertEqual(self.section_assets[2], assets.get_section_assets(section, main_page, 'footer'))
+        self.assertEqual(self.section_assets[2], assets.get_section_assets(section, extra_page, 'footer'))
+        self.assertEqual(self.section_assets[3], assets.get_section_assets(section, main_page, 'sidebar'))
+        self.assertEqual(self.section_assets[4], assets.get_section_assets(section, extra_page, 'sidebar'))
 
 
 class PageRendererTests(ResetRegistryMixin, FixTestDataMixin, TestCase):
+
+    def setUp(self):
+        pass
 
     def test_page_renderer(self):
         page = ExtraPage.objects.all()[0]
