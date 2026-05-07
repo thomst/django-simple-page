@@ -19,9 +19,3 @@ Renderer
 
 .. automodule:: simple_page.renderer
    :members:
-
-Assets
-======
-
-.. automodule:: simple_page.assets
-   :members:
