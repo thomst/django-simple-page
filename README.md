@@ -4,74 +4,56 @@
 [![Coverage Status](https://coveralls.io/repos/github/thomst/django-simple-page/badge.svg?branch=main)](https://coveralls.io/github/thomst/django-simple-page?branch=main)
 [<img src="https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange">](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange)
 
-A simple and straight forward cms buildkit for django.
+Django-simple-page is a cms buildkit for your website. The strength of this
+project is its simplicity - using comprehensible yet powerful concepts. You get
+the basic stuff, but retain all your freedom.
 
-See the **[docs](https://thomst.github.io/django-simple-page/)**.
+## Links
+
+- **[github](https://github.com/django-simple-page/)**
+- **[docs](https://thomst.github.io/django-simple-page/)**
+- **[pypi](https://pypi.org/project/django-simple-page/)**
+
 
 ## Features
 
 - **Tree structured Pages**: By django-mptt.
-- **Pages, regions and content**: Assigning content to regions on pages.
+- **Pages, regions and sections**: Assigning sections to regions on pages.
+- **Custom rendering logic**: Each page or section can have its own renderer.
+- **Simple yet powerful concept**: Everything can be customized by subclassing.
 - **Admin backend integration**: Easy to use. Order elements via drag and drop.
-- **Simple yet powerful concept**: Just gives you the basics, but leaving the freedom with you.
+
 
 ## Description
 
-### Pages and sections
+### Pages, regions and sections
 
-The strength of this project is its simplicity. You got a reliable database
-layout of pages and sections. Sections are associated with regions on pages.
-Everything else is up to you. Sections could be anything you want, from a simple
-content type like an article with title and text body to a full featured
-gallery. You build what you need just by subclassing the page and section model.
+You got a reliable database layout of pages and sections. Sections are
+associated with regions on pages. Everything else is up to you. Sections could
+be anything you want, from a simple content type like an article with title and
+text body to a full featured gallery. You build what you need just by
+subclassing the page and section model.
 
 ### Renderer
 
 While there are default renderers for pages and sections which are probably
 suitable for most use cases, you are free to completely adapt or overwrite them.
-Each page or section can have its own renderer providing a specific logic.
+Each page or section can have its own renderer providing a specific rendering
+logic. And each renderer can have its own Media class defining javascript or css
+files. Those media assets are merged by the page renderer and be available as
+`media` template variable.
 
-### Assets
+### Admin integration
 
-If there are any specific css or javascript files for your pages or sections,
-simply sublcass the Assets class and register it with your page or section
-class. The Assets class is what you know from django as a Media class for forms.
-And it is just as easy as that: defining js and css properties in the familiar
-format.
+At least we provide a handy admin backend integration. Rearrange your pages by
+drag and drop. Add sections to your page regions with inline formsets and
+reorder them by just dragging them to their new position. It's simple and
+sufficient.
 
 ### Summing-up
 
 As you can see, everything is done by subclassing. While django-simple-page
 giving you the basics to build your website, it is not taking any freedom from
 you. You define your pages with regions, your sections as content, your
-rendering logic and your assets and put everything together like building
-blocks.
-
-Let simple projects be simple, and advanced projects having their way. So...
-being helpful, but not obtrusive. That's what django-simple-page wants to do.
-
-
-## Installation
-
-1. Add `simple_page` to your Django project's `INSTALLED_APPS`:
-
-```python
-INSTALLED_APPS = [
-    # ...
-    'simple_page',
-    'reorder_items_widget',
-    'mptt',
-    # ...
-]
-```
-
-2. Run migrations:
-
-```bash
-python manage.py migrate
-```
-
-
-## Getting started
-
-TODO
+rendering logic with their media classes and put everything together like
+building blocks.

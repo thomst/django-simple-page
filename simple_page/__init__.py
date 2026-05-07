@@ -22,16 +22,9 @@ Renderer
 While there are default renderers for pages and sections which are probably
 suitable for most use cases, you are free to completely adapt or overwrite them.
 Each page or section can have its own renderer providing a specific rendering
-logic.
-
-Assets
-------
-
-If there are any specific css or javascript files for your pages or sections,
-simply sublcass the Assets class and register it with your page or section
-class. The Assets class is what you know from django as a Media class for forms.
-And it is just as easy as that: defining js and css class properties in the
-familiar format.
+logic. And each renderer can have its own Media class defining javascript or css
+files. Those media assets are merged by the page renderer and be available as
+`media` template variable.
 
 Admin integration
 -----------------
@@ -47,6 +40,6 @@ Summing-up
 As you can see, everything is done by subclassing. While django-simple-page
 giving you the basics to build your website, it is not taking any freedom from
 you. You define your pages with regions, your sections as content, your
-rendering logic and your assets and put everything together like building
-blocks.
+rendering logic with their media classes and put everything together like
+building blocks.
 """
