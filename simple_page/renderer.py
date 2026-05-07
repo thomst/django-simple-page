@@ -197,20 +197,6 @@ class PageRenderer(BaseRenderer):
     :param kwargs: Additional data as keyword arguments
     """
 
-    def render_section(self, section, region):
-        """
-        Return a section rendered as html.
-
-        :param section: section object
-        :type section: :class:`~.models.Section`
-        :param str region: region name
-        :return: rendered html
-        :rtype: str
-        """
-        renderer_cls = get_section_renderer(section, self.obj, region)
-        renderer = renderer_cls(section, self.request, **self.kwargs)
-        return renderer.render()
-
     def get_section_data(self, section, region):
         """
         Return a dictonary holding the section as object and as rendered html
@@ -222,9 +208,11 @@ class PageRenderer(BaseRenderer):
         :return: section data holding the section object and the rendered html
         :rtype: dict
         """
+        renderer_cls = get_section_renderer(section, self.obj, region)
+        renderer = renderer_cls(section, self.request, **self.kwargs)
         return dict(
             obj=section,
-            html=self.render_section(section, region)
+            html=renderer.render()
         )
 
     def get_region_data(self, region, title):
