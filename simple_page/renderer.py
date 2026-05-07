@@ -102,8 +102,20 @@ class BaseRenderer(metaclass=MediaDefiningClass):
     """
     Base renderer class. This class provides the basic functionality to render a
     Page or Section instance. It uses the proven triad of `get_template_name`,
-    `get_context` and `render` methods. But can be customized to any extend. All
-    a child class has to provide is a `render` method returning valid HTML.
+    `get_context` and `render` methods. But can be customized to any extend.
+    Everything a child class has to provide is a `render` method returning valid
+    HTML.
+
+    Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
+    metaclass. They can be equipped with `Media` classes as you know from django
+    forms and widgets. Those media assets will be merged by a page renderer and
+    provided as a 'media' template variable.
+
+    :param obj: object to be rendered
+    :type obj: :class:`~.models.Page` or :class:`~.models.Section`
+    :param request: request object (default: None)
+    :type request: :class:`~django.http.HttpRequest`
+    :param kwargs: Additional data as keyword arguments (default empty dict)
     """
     template_name = None
 
