@@ -147,10 +147,16 @@ class BaseRenderer(metaclass=MediaDefiningClass):
 
     def get_context(self):
         """
-        Return the context for rendering. This method will be implemented by
-        :class:`~.SectionRenderer` and :class:`~.PageRenderer`.
+        Build and return rendering context. Just a dict with the section or page
+        object.
+
+        :return: rendering context
+        :rtype: dict
         """
-        raise NotImplementedError
+        context = self.kwargs.get('extra_context', dict())
+        key = 'page' if isinstance(self.obj, Page) else 'section'
+        context[key] = self.obj
+        return context
 
     def render(self):
         """
@@ -165,36 +171,13 @@ class BaseRenderer(metaclass=MediaDefiningClass):
 class SectionRenderer(BaseRenderer):
     """
     Renderer for Section instances.
-
-    :param obj: section object
-    :type obj: :class:`~.models.Section`
-    :param request: request object (default: None)
-    :type request: :class:`~django.http.HttpRequest`
-    :param kwargs: Additional data as keyword arguments
     """
-
-    def get_context(self):
-        """
-        Add section object as 'section' to the context.
-
-        :return: rendering context
-        :rtype: dict
-        """
-        context = self.kwargs.get('extra_context', dict())
-        context['section'] = self.obj
-        return context
 
 
 
 class PageRenderer(BaseRenderer):
     """
     Renderer for Page instances.
-
-    :param obj: page object
-    :type obj: :class:`~.models.Page`
-    :param request: request object (default: None)
-    :type request: :class:`~django.http.HttpRequest`
-    :param kwargs: Additional data as keyword arguments
     """
 
     def get_section_data(self, section, region):
@@ -248,22 +231,21 @@ class PageRenderer(BaseRenderer):
 
     def get_context(self):
         """
-        Add page, regions and media assets to the context.
+        Add regions and media assets to the context.
 
         Regions will be added as template variables on their own and as a list
         named 'regions'. Each region is a dictonary of its name, title and its
         sections. See :meth:`~.get_region_data`.
 
-        Media assets will be the merged assets of the page and all its sections.
-        See :meth:`~.get_media_assets`.
+        Media assets will be merged from all renderers being involved. See
+        :meth:`~.get_media_assets`.
 
         :return: rendering context
         :rtype: dict
         """
         # Add regions, sections and media to the context.
-        context = self.kwargs.get('extra_context', dict())
+        context = super().get_context()
         context['media'] = self.get_media_assets()
-        context['page'] = self.obj
         context['regions'] = []
         for region, title in self.obj.get_regions():
             context[region] = self.get_region_data(region, title)
