@@ -6,6 +6,17 @@ Django-simple-page is a cms buildkit for your website. The strength of this
 project is its simplicity - using comprehensible yet powerful concepts. You get
 the basic stuff, but retain all your freedom.
 
+Features
+========
+
+- **Tree structured Pages**: By django-mptt.
+- **Pages, regions and sections**: Assigning sections to regions on pages.
+- **Custom rendering logic**: Each page or section can have its own renderer.
+- **Simple yet powerful concept**: Everything can be customized by subclassing.
+- **Admin backend integration**: Easy to use. Order elements via drag and drop.
+
+Concepts
+========
 
 Pages, regions and sections
 ---------------------------
@@ -27,12 +38,11 @@ files. Those media assets are merged by the page renderer and be available as
 `media` template variable.
 
 Admin integration
------------------
+=================
 
-At least we provide a handy admin backend integration. Rearrange your pages by
-drag and drop. Add sections to your page regions with inline formsets and
-reorder them by just dragging them to their new position. It's simple and
-sufficient.
+We provide a handy admin backend integration. Rearrange your pages by drag and
+drop. Add sections to your page regions with inline formsets and reorder them by
+just dragging them to their new position. It's simple and sufficient.
 
 Summing-up
 ==========
