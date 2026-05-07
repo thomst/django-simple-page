@@ -1,6 +1,6 @@
 import re
 from django.template.loader import get_template
-from .assets import get_page_assets, get_section_assets, Assets
+from django.forms.widgets import MediaDefiningClass
 from .models import Page
 
 
@@ -98,7 +98,7 @@ def get_section_renderer(section, page=None, region=None):
         return SectionRenderer
 
 
-class Renderer:
+class Renderer(metaclass=MediaDefiningClass):
     """
     Base renderer class. This class provides the basic functionality to render a
     Page or Section instance. It uses the proven triad of `get_template_name`,
@@ -232,19 +232,19 @@ class PageRenderer(Renderer):
             region_data['sections'].append(section_data)
         return region_data
 
-    def get_assets(self, region):
+    def get_media_assets(self):
         """
-        Return an :class:`~..assets.Assets` instance which holding
-        all the assets from the sections of a given region.
+        Merge all media objects of the page and the sections renderers. Return
+        them as string.
 
-        :param str region: region name
-        :return: assets
-        :rtype: :class:`~.assets.Assets`
+        :return str: merged media assets
         """
-        media = Assets()
-        for section in getattr(self.obj, region):
-            media += get_section_assets(section, self.obj, region)()
-        return media
+        media = get_page_renderer(self.obj)(self.obj).media
+        for region, _ in self.obj.get_regions():
+            for section in getattr(self.obj, region):
+                section_renderer = get_section_renderer(section, self.obj, region)
+                media += section_renderer(section).media
+        return str(media)
 
     def get_context(self):
         """
@@ -255,19 +255,18 @@ class PageRenderer(Renderer):
         sections. See :meth:`~.get_region_data`.
 
         Media assets will be the merged assets of the page and all its sections.
-        See :meth:`~.get_assets`.
+        See :meth:`~.get_media_assets`.
 
         :return: rendering context
         :rtype: dict
         """
         # Add regions, sections and media to the context.
         context = self.kwargs.get('extra_context', dict())
+        context['media'] = self.get_media_assets()
         context['page'] = self.obj
         context['regions'] = []
-        context['media'] = get_page_assets(self.obj)()
-        for name, title in self.obj.get_regions():
-            context[name] = self.get_region_data(name, title)
-            context['regions'].append(context[name])
-            context['media'] += self.get_assets(name)
+        for region, title in self.obj.get_regions():
+            context[region] = self.get_region_data(region, title)
+            context['regions'].append(context[region])
 
         return context

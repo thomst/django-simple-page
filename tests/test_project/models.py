@@ -3,10 +3,8 @@ from django.db import models
 from simple_page.models import Section
 from simple_page.models import Page
 from simple_page import renderer
-from simple_page import assets
 
 from .renderer import TextSectionRenderer, ExtraPageRenderer, ExtraSectionRenderer
-from .assets import TextSectionAssets, ExtraPageAssets
 
 
 class MainPage(Page):
@@ -20,8 +18,6 @@ class MainPage(Page):
         proxy = True
 
 
-# Use register function as decorator.
-@assets.register(ExtraPageAssets)
 @renderer.register(ExtraPageRenderer)
 class ExtraPage(Page):
     REGIONS = [
@@ -42,10 +38,6 @@ class TextSection(Section):
 
     def __str__(self):
         return f'{self.text[:8]}...'
-
-
-# Use register function as function.
-assets.register(TextSectionAssets, TextSection)
 
 
 class TextWithTitleSection(Section):
