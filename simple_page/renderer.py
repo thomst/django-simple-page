@@ -98,7 +98,7 @@ def get_section_renderer(section, page=None, region=None):
         return SectionRenderer
 
 
-class Renderer(metaclass=MediaDefiningClass):
+class BaseRenderer(metaclass=MediaDefiningClass):
     """
     Base renderer class. This class provides the basic functionality to render a
     Page or Section instance. It uses the proven triad of `get_template_name`,
@@ -150,7 +150,7 @@ class Renderer(metaclass=MediaDefiningClass):
         return template.render(context)
 
 
-class SectionRenderer(Renderer):
+class SectionRenderer(BaseRenderer):
     """
     Renderer for Section instances.
 
@@ -174,7 +174,7 @@ class SectionRenderer(Renderer):
 
 
 
-class PageRenderer(Renderer):
+class PageRenderer(BaseRenderer):
     """
     Renderer for Page instances.
 
