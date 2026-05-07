@@ -182,8 +182,8 @@ class PageRenderer(BaseRenderer):
 
     def get_section_data(self, section, region):
         """
-        Return a dictonary holding the section as object and as rendered html
-        using 'obj' and 'html' as keys.
+        Return a dictonary holding the section as `obj` and its rendered html as
+        `html`.
 
         :param section: section object
         :type section: :class:`~.models.Section`
@@ -200,9 +200,9 @@ class PageRenderer(BaseRenderer):
 
     def get_region_data(self, region, title):
         """
-        Return a dictonary with the name, the title and the sections of a
-        region. The sections will be a dictonary of the section object and its
-        rendered html. See :meth:`~.get_section_data`.
+        Return a dictonary with the `name`, the `title` and the `sections` of a
+        region. `sections` will be a dictonary build by
+        :meth:`~.get_section_data`.
 
         :param str region: region name
         :param str tilte: region title
