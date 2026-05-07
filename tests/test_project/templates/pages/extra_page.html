@@ -3,7 +3,7 @@
 {% block content %}
     <h1>{{ page.title }}</h1>
     <p>{{ special_info }}</p>
-    {% for region in regions %}
+    {% for region in regions.values %}
         <div id="{{ region.slug }}">
             <h2>{{ region.title }}</h2>
             {% for section in region.sections %}

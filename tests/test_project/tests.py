@@ -150,7 +150,7 @@ class PageRendererTests(SetupRendererAndAssetsMixin, FixTestDataMixin, TestCase)
         for region, _ in self.page.get_regions():
             self.assertIn(region, context)
             self.assertIn('sections', context[region])
-            self.assertIn(context[region], context['regions'])
+            self.assertIn(context[region], context['regions'].values())
 
     def test_media_context(self):
         context = self.page_renderer.get_context()

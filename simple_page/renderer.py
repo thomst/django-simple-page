@@ -233,12 +233,13 @@ class PageRenderer(BaseRenderer):
         """
         Add regions and media assets to the context.
 
-        Regions will be added as template variables on their own and as a list
-        named 'regions'. Each region is a dictonary of its name, title and its
-        sections. See :meth:`~.get_region_data`.
+        `regions` will be a dictonary mapping the regions slug name to the
+        regions data build by :meth:`~.get_media_assets`. As a shortcut earch
+        region data will be also added with its slug name as its own template
+        variable.
 
-        Media assets will be merged from all renderers being involved. See
-        :meth:`~.get_media_assets`.
+        `media` will be the merged media assets from all renderers being
+        involved as string. See :meth:`~.get_media_assets`.
 
         :return: rendering context
         :rtype: dict
@@ -246,9 +247,9 @@ class PageRenderer(BaseRenderer):
         # Add regions, sections and media to the context.
         context = super().get_context()
         context['media'] = self.get_media_assets()
-        context['regions'] = []
+        context['regions'] = dict()
         for region, title in self.obj.get_regions():
             context[region] = self.get_region_data(region, title)
-            context['regions'].append(context[region])
+            context['regions'][region] = context[region]
 
         return context
