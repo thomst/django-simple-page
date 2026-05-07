@@ -8,14 +8,15 @@ Models
    :members: Page, Section
 
 
-ModelAdmin
-==========
-
-.. automodule:: simple_page.admin
-   :members: BasePageAdmin
-
 Renderer
 ========
 
 .. automodule:: simple_page.renderer
    :members:
+
+
+Admin
+=====
+
+.. automodule:: simple_page.admin
+   :members: BasePageAdmin
