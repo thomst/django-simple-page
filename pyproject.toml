@@ -52,3 +52,9 @@ simple_page = ["templates/**"]
 
 [tool.setuptools.dynamic]
 version = {attr = "simple_page.__version__.__version__"}
+
+[project.optional-dependencies]
+test = [
+    "Pillow",
+    "coverage",
+]
