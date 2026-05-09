@@ -34,6 +34,27 @@ class FixTestDataMixin:
             page.save()
 
 
+class AddSectionsMixin:
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        page = MainPage.objects.all().first()
+        for region in MainPage.get_regions():
+            cls.add_section(page, region)
+
+    @staticmethod
+    def add_section(page, region, text=None):
+        text = text or 'foobar'
+        section = TextSection.objects.create(text=text)
+        page_section = PageSection.objects.create(
+            page=page,
+            section=section,
+            region=region
+        )
+        return section, page_section
+
+
+
 class SetupRendererMixin:
 
     @classmethod
@@ -126,7 +147,7 @@ class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
         self.assertEqual(self.section_renderer[4], renderer.get_section_renderer(section, extra_page, 'sidebar'))
 
 
-class PageRendererTests(SetupRendererMixin, FixTestDataMixin, TestCase):
+class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, TestCase):
 
     def setUp(self):
         self.page = MainPage.objects.all().first()
