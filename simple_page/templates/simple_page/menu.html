@@ -1,0 +1,13 @@
+{% load simple_page mptt_tags %}
+<ul class="nav-level-1">
+    {% recursetree nodes %}
+        <li{% if page|is_active:node %} class="active"{% endif %}>
+            <a href="{{ node.get_absolute_url }}">{{ node.title }}</a>
+            {% if not node.is_leaf_node and not node|level > max_level%}
+                <ul class="nav-level-{{ node|level }}">
+                    {{ children }}
+                </ul>
+            {% endif %}
+        </li>
+    {% endrecursetree %}
+</ul>
