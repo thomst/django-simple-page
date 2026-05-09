@@ -10,16 +10,16 @@ Features
 ========
 
 - **Tree structured Pages**: By django-mptt.
-- **Pages, regions and sections**: Assigning sections to regions on pages.
-- **Custom rendering logic**: Each page or section can have its own renderer.
+- **Pages and sections**: Assigning sections to regions on pages.
+- **Renderer**: Each page or section can have its own renderer.
 - **Simple yet powerful concept**: Everything can be customized by subclassing.
 - **Admin backend integration**: Easy to use. Order elements via drag and drop.
 
 Concepts
 ========
 
-Pages, regions and sections
----------------------------
+Pages and sections
+------------------
 
 You got a reliable database layout of pages and sections. Sections are
 associated with regions on pages. Everything else is up to you. Sections could
