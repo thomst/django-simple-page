@@ -129,7 +129,7 @@ class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
 class PageRendererTests(SetupRendererMixin, FixTestDataMixin, TestCase):
 
     def setUp(self):
-        self.page = MainPage.objects.all()[0]
+        self.page = MainPage.objects.all().first()
         self.section = TextSection.objects.all()[0]
         self.page_renderer_class = renderer.get_page_renderer(self.page)
         self.page_renderer = self.page_renderer_class(self.page)
