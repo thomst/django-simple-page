@@ -1,23 +1,36 @@
 {% extends 'pages/base_page.html' %}
+{% load simple_page %}
 
 {% block content %}
-    <h1>{{ page.title }}</h1>
-    <main>
-        <h2>{{ regions.main.title }}</h2>
-        {% for section in regions.main.sections %}
-            {{ section.html }}
-        {% endfor %}
-    </main>
-    <aside>
-        <h2>{{ regions.sidebar.title }}</h2>
-        {% for section in regions.sidebar.sections %}
-            {{ section.html }}
-        {% endfor %}
-    </aside>
-    <footer id="footer">
-        <h2>{{ regions.footer.title }}</h2>
-         {% for section in regions.footer.sections %}
-            {{ section.html }}
-        {% endfor %}
-    </footer>
+    <div class="container1">
+        <aside>
+            <p>[{{ regions.sidebar.title }}]</p>
+            <div class="nav">
+                <a {% if page == page.get_root %}class="active" {% endif %}href="{{ page.get_root.get_absolute_url }}">
+                    {{ page.get_root.title }}
+                </a>
+                <nav>{% menu page max_level=2 %}</nav>
+            </div>
+            <div class="sections">
+                {% for section in regions.sidebar.sections %}
+                    {{ section.html }}
+                {% endfor %}
+            </div>
+        </aside>
+        <div class="container2">
+            <main>
+                <p>[{{ regions.main.title }}]</p>
+                <h1>{{ page.title }}</h1>
+                {% for section in regions.main.sections %}
+                    {{ section.html }}
+                {% endfor %}
+            </main>
+            <footer id="footer">
+                <p>[{{ regions.footer.title }}]</p>
+                {% for section in regions.footer.sections %}
+                    {{ section.html }}
+                {% endfor %}
+            </footer>
+        </div>
+    </div>
 {% endblock %}

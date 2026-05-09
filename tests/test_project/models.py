@@ -4,9 +4,10 @@ from simple_page.models import Section
 from simple_page.models import Page
 from simple_page import renderer
 
-from .renderer import TextSectionRenderer, ExtraPageRenderer, ExtraSectionRenderer
+from .renderer import MainPageRenderer, TextSectionRenderer, ExtraPageRenderer, ExtraSectionRenderer
 
 
+@renderer.register(MainPageRenderer)
 class MainPage(Page):
     REGIONS = [
         ('main', 'Main Region'),

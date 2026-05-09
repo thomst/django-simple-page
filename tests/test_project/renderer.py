@@ -1,6 +1,11 @@
 from simple_page import renderer
 
 
+class MainPageRenderer(renderer.PageRenderer):
+    class Media:
+        css = dict(all=['pages/base.css'])
+
+
 class ExtraPageRenderer(renderer.PageRenderer):
     class Media:
         css = {
