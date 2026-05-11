@@ -4,7 +4,7 @@
 {% block content %}
     <div class="container1">
         <aside>
-            <p>[{{ regions.sidebar.title }}]</p>
+            <p><b>[{{ regions.sidebar.title }}]</b></p>
             <div class="nav">
                 <a {% if page == page.get_root %}class="active" {% endif %}href="{{ page.get_root.get_absolute_url }}">
                     {{ page.get_root.title }}
@@ -19,14 +19,14 @@
         </aside>
         <div class="container2">
             <main>
-                <p>[{{ regions.main.title }}]</p>
+                <p><b>[{{ regions.main.title }}]</b></p>
                 <h1>{{ page.title }}</h1>
                 {% for section in regions.main.sections %}
                     {{ section.html }}
                 {% endfor %}
             </main>
             <footer id="footer">
-                <p>[{{ regions.footer.title }}]</p>
+                <p><b>[{{ regions.footer.title }}]</b></p>
                 {% for section in regions.footer.sections %}
                     {{ section.html }}
                 {% endfor %}
