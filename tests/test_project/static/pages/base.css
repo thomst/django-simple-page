@@ -24,7 +24,6 @@ h2, h3, p {
 /* Main Layout */
 
 aside, main, footer {
-    border: solid 1px #ccc;
     padding: 2vw;
 }
 div.container1 {

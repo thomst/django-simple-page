@@ -4,10 +4,9 @@ from simple_page.models import Section
 from simple_page.models import Page
 from simple_page import renderer
 
-from .renderer import MainPageRenderer, TextSectionRenderer, ExtraPageRenderer, ExtraSectionRenderer
+from .renderer import ExtraPageRenderer
 
 
-@renderer.register(MainPageRenderer)
 class MainPage(Page):
     REGIONS = [
         ('main', 'Main Region'),
@@ -22,30 +21,17 @@ class MainPage(Page):
 @renderer.register(ExtraPageRenderer)
 class ExtraPage(Page):
     REGIONS = [
-        ('main', 'Main Region'),
         ('extra', 'Extra Region'),
-        ('sidebar', 'Sidebar'),
-        ('footer', 'Footer'),
+        *MainPage.REGIONS
     ]
 
     special_info = models.CharField(max_length=255, blank=True)
 
 
-@renderer.register(TextSectionRenderer)
-@renderer.register(ExtraSectionRenderer, context=(ExtraPage, 'extra'))
 class TextSection(Section):
 
+    title = models.CharField(max_length=255, blank=True)
     text = models.TextField(blank=True)
 
     def __str__(self):
-        return f'{self.text[:8]}...'
-
-
-class TextWithTitleSection(Section):
-
-    title = models.CharField(max_length=255)
-    text = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.title
-
+        return self.title or f'{self.text[:8]} ...'
