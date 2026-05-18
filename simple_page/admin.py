@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.forms import HiddenInput
 from django.utils.functional import cached_property
+from django.utils.html import mark_safe
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
@@ -140,11 +141,16 @@ class SetPageTypeMixin(GetPageModelMixin):
 
 @admin.register(Page)
 class PageAdmin(SetPageTypeMixin, ChoosePageTypeMixin, RenderPageRegionsMixin, DraggableMPTTAdmin):
-    list_display = ("tree_actions", "indented_title", "slug", "page_type")
+    list_display = ("tree_actions", "indented_title", "slug", "page_type", "view_page_link")
     list_display_links=('indented_title',)
     search_fields = ("title", "slug")
     prepopulated_fields = {"slug": ("title",)}
     list_filter = ("parent",)
+
+    def view_page_link(self, obj):
+        url = obj.get_absolute_url()
+        return mark_safe(f'<a href="{url}" target="_blank">View page</a>')
+    view_page_link.short_description = "View page"
 
 
 class BasePageAdmin(SetPageTypeMixin, RenderPageRegionsMixin, admin.ModelAdmin):
