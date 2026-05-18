@@ -24,6 +24,9 @@ class Section(models.Model):
             child_self = self._meta.model.objects.get_subclass(id=self.id)
             return f"{child_self._meta.verbose_name}: {child_self}"
         else:
+            # FIXME: This leads to a recursive call if child_self is a Section
+            # as well. This happens when for any reason a section object has no
+            # child class.
             return super().__str__()
 
 
