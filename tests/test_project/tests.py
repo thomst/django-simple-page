@@ -38,21 +38,18 @@ class AddSectionsMixin:
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        page = MainPage.objects.all().first()
-        for region in MainPage.get_regions():
+        page = MainPage.objects.first()
+        for region, _ in MainPage.get_regions():
             cls.add_section(page, region)
 
     @staticmethod
-    def add_section(page, region, text=None):
-        text = text or 'foobar'
+    def add_section(page, region, text='foobar'):
         section = TextSection.objects.create(text=text)
         page_section = PageSection.objects.create(
             page=page,
             section=section,
             region=region
         )
-        return section, page_section
-
 
 
 class SetupRendererMixin:
