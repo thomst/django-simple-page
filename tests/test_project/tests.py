@@ -132,13 +132,13 @@ class SetupRendererMixin:
 class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer_registry(self):
-        page = MainPage.objects.all()[0]
+        page = MainPage.objects.first()
         self.assertEqual(self.page_renderer, renderer.get_page_renderer(page))
 
     def test_section_renderer_register(self):
-        section = TextSection.objects.all()[0]
-        main_page = MainPage.objects.all()[0]
-        extra_page = ExtraPage.objects.all()[0]
+        section = TextSection.objects.first()
+        main_page = MainPage.objects.first()
+        extra_page = ExtraPage.objects.first()
 
         self.assertEqual(self.section_renderer[1], renderer.get_section_renderer(section, main_page, 'main'))
         self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, main_page, 'footer'))
@@ -151,7 +151,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
 
     def setUp(self):
         self.page = MainPage.objects.all().first()
-        self.section = TextSection.objects.all()[0]
+        self.section = TextSection.objects.first()
         self.page_renderer_class = renderer.get_page_renderer(self.page)
         self.page_renderer = self.page_renderer_class(self.page)
         return super().setUp()
