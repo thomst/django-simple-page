@@ -285,6 +285,14 @@ class AdminBackendTests(FixTestDataMixin, TestCase):
         self.main_page_type = ContentType.objects.get(model='mainpage')
         self.extra_page_type = ContentType.objects.get(model='extrapage')
 
+    def test_page_list_view(self):
+        url = reverse('admin:simple_page_page_changelist')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        for page in Page.objects.all():
+            regex = r'<a[^>]+>\s*{}\s*</a>'.format(page.title)
+            self.assertRegex(resp.content.decode('utf8'), regex)
+
     def test_main_page_changeform_regions(self):
         page = Page.objects.filter(page_type=self.main_page_type).first()
         change_page_url = reverse('admin:simple_page_page_change', args=(page.id,))
@@ -322,6 +330,10 @@ class AdminBackendTests(FixTestDataMixin, TestCase):
             self.assertRegex(resp.content.decode('utf8'), regex)
             self.assertIn(main_page_href, resp.content.decode('utf8'))
             self.assertIn(extra_page_url, resp.content.decode('utf8'))
+
+    def test_get_page_type_mixin_with_invalid_id(self):
+        url = f"{reverse('admin:simple_page_page_add')}?page_type=9999"
+        self.assertRaises(ValueError, self.client.get, url)
 
     def test_set_page_type_mixin(self):
         add_page_url = reverse('admin:test_project_extrapage_add')
