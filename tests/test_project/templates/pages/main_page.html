@@ -6,10 +6,7 @@
         <aside>
             <p><b>[{{ regions.sidebar.title }}]</b></p>
             <div class="nav">
-                <a {% if page == page.get_root %}class="active" {% endif %}href="{{ page.get_root.get_absolute_url }}">
-                    {{ page.get_root.title }}
-                </a>
-                <nav>{% menu page max_level=2 %}</nav>
+                <nav>{% menu page max_level=2 include_root=True %}</nav>
             </div>
             <div class="sections">
                 {% for section in regions.sidebar.sections %}
