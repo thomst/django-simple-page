@@ -250,8 +250,8 @@ class PageTests(AddSectionsMixin, FixTestDataMixin, TestCase):
 class UpdateIndexesTests(FixTestDataMixin, TestCase):
 
     def test_update_indexes_on_deleting(self):
-        page = ExtraPage.objects.first()
-        page_sections = PageSection.objects.filter(page=page, region='extra')
+        page = MainPage.objects.first()
+        page_sections = PageSection.objects.filter(page=page, region='main')
 
         # Get original indexes.
         old_indxs = dict(page_sections.values_list('id', 'index'))
