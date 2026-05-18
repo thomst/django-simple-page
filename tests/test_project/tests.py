@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.template import Template, Context
 
 from simple_page.models import Page, PageSection, Section
 from simple_page import renderer
@@ -359,3 +360,54 @@ class PageViewTests(FixTestDataMixin, TestCase):
         url = reverse('page', kwargs={'slug': 'invalid_slug'})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 404)
+
+
+class MenuTemplateTagTests(FixTestDataMixin, TestCase):
+
+    def test_menu_template_tag_with_root(self):
+        template = Template('{% load simple_page %}{% menu page include_root=True %}')
+        page = Page.objects.first()
+        context = Context({'page': page})
+        rendered = template.render(context)
+        for page in Page.objects.all():
+            href = f'<a href="{page.get_absolute_url()}">{page.title}</a>'
+            self.assertInHTML(href, rendered)
+
+    def test_menu_template_tag_without_root(self):
+        template = Template('{% load simple_page %}{% menu page include_root=False %}')
+        page = Page.objects.first()
+        context = Context({'page': page})
+        rendered = template.render(context)
+        for page in Page.objects.all():
+            href = f'<a href="{page.get_absolute_url()}">{page.title}</a>'
+            if page.is_root_node():
+                self.assertNotInHTML(href, rendered)
+            else:
+                self.assertInHTML(href, rendered)
+
+    def test_menu_template_tag_with_max_level(self):
+        for max_level in range(1, 4):
+            template = Template(f'{{% load simple_page %}}{{% menu page include_root=True max_level={max_level} %}}')
+            page = Page.objects.first()
+            context = Context({'page': page})
+            rendered = template.render(context)
+            for page in Page.objects.all():
+                href = f'<a href="{page.get_absolute_url()}">{page.title}</a>'
+                if page.is_root_node() or page.get_ancestors().count() <= max_level:
+                    self.assertInHTML(href, rendered)
+                else:
+                    self.assertNotInHTML(href, rendered)
+
+    def test_is_active_template_filter(self):
+        template = Template('{% load simple_page %}{% menu page %}')
+        for page in Page.objects.all():
+            context = Context({'page': page})
+            rendered = template.render(context)
+            for node in Page.objects.all():
+                if node.is_root_node():
+                    continue
+                regex = r'<li class="active">\s*<a[^>]+>\s*{}\s*</a>'.format(node.title)
+                if node in context['page'].get_ancestors(include_self=True):
+                    self.assertRegex(rendered, regex)
+                else:
+                    self.assertNotRegex(rendered, regex)
