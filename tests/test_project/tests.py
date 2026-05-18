@@ -227,12 +227,24 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
                     self.assertNotIn(self.section_renderer[2].extra_data, data['html'])
 
 
-class PageTests(FixTestDataMixin, TestCase):
+class PageTests(AddSectionsMixin, FixTestDataMixin, TestCase):
 
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
             child = page.resolve_obj()
             self.assertTrue(isinstance(child, (MainPage, ExtraPage)))
+
+    def test_get_regions(self):
+        page = MainPage.objects.first()
+        for region, _ in page.get_regions():
+            self.assertTrue(hasattr(page, region))
+            for section in getattr(page, region).all():
+                # The section queryset uses select_subclasses.
+                self.assertIsInstance(section, TextSection)
+
+        # Raise AttributeError for non existing region.
+        with self.assertRaises(AttributeError):
+            page.non_existing_region
 
 
 class UpdateIndexesTests(FixTestDataMixin, TestCase):
