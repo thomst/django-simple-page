@@ -1,5 +1,6 @@
 import os
 import copy
+import re
 import tempfile
 from pathlib import Path
 
@@ -363,6 +364,10 @@ class PageViewTests(FixTestDataMixin, TestCase):
 
 
 class MenuTemplateTagTests(FixTestDataMixin, TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.href_regex = r'<a[^>]+href="{}"[^>]*>\s*{}\s*</a>'
+        super().setUpClass()
 
     def test_menu_template_tag_with_root(self):
         template = Template('{% load simple_page %}{% menu page include_root=True %}')
@@ -370,8 +375,8 @@ class MenuTemplateTagTests(FixTestDataMixin, TestCase):
         context = Context({'page': page})
         rendered = template.render(context)
         for page in Page.objects.all():
-            href = f'<a href="{page.get_absolute_url()}">{page.title}</a>'
-            self.assertInHTML(href, rendered)
+            regex = self.href_regex.format(re.escape(page.get_absolute_url()), re.escape(page.title))
+            self.assertRegex(rendered, regex)
 
     def test_menu_template_tag_without_root(self):
         template = Template('{% load simple_page %}{% menu page include_root=False %}')
@@ -379,11 +384,11 @@ class MenuTemplateTagTests(FixTestDataMixin, TestCase):
         context = Context({'page': page})
         rendered = template.render(context)
         for page in Page.objects.all():
-            href = f'<a href="{page.get_absolute_url()}">{page.title}</a>'
+            regex = self.href_regex.format(re.escape(page.get_absolute_url()), re.escape(page.title))
             if page.is_root_node():
-                self.assertNotInHTML(href, rendered)
+                self.assertNotRegex(rendered, regex)
             else:
-                self.assertInHTML(href, rendered)
+                self.assertRegex(rendered, regex)
 
     def test_menu_template_tag_with_max_level(self):
         for max_level in range(1, 4):
@@ -392,11 +397,11 @@ class MenuTemplateTagTests(FixTestDataMixin, TestCase):
             context = Context({'page': page})
             rendered = template.render(context)
             for page in Page.objects.all():
-                href = f'<a href="{page.get_absolute_url()}">{page.title}</a>'
+                regex = self.href_regex.format(re.escape(page.get_absolute_url()), re.escape(page.title))
                 if page.is_root_node() or page.get_ancestors().count() <= max_level:
-                    self.assertInHTML(href, rendered)
+                    self.assertRegex(rendered, regex)
                 else:
-                    self.assertNotInHTML(href, rendered)
+                    self.assertNotRegex(rendered, regex)
 
     def test_is_active_template_filter(self):
         template = Template('{% load simple_page %}{% menu page %}')
@@ -406,7 +411,8 @@ class MenuTemplateTagTests(FixTestDataMixin, TestCase):
             for node in Page.objects.all():
                 if node.is_root_node():
                     continue
-                regex = r'<li class="active">\s*<a[^>]+>\s*{}\s*</a>'.format(node.title)
+                href_regex = self.href_regex.format(re.escape(node.get_absolute_url()), re.escape(node.title))
+                regex = r'<li class="active">\s*{}'.format(href_regex)
                 if node in context['page'].get_ancestors(include_self=True):
                     self.assertRegex(rendered, regex)
                 else:
