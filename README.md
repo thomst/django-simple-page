@@ -10,9 +10,9 @@ the basic stuff, but retain all your freedom.
 
 ## Links
 
-- **[github](https://github.com/django-simple-page/)**
-- **[docs](https://thomst.github.io/django-simple-page/)**
-- **[pypi](https://pypi.org/project/django-simple-page/)**
+- [github](https://github.com/django-simple-page/)
+- [docs](https://thomst.github.io/django-simple-page/)
+- [pypi](https://pypi.org/project/django-simple-page/)
 
 
 ## Features
