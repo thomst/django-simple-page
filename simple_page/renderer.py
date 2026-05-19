@@ -6,39 +6,41 @@ from .models import Page
 
 REGISTRY = dict()
 
-def register(renderer_cls, model_cls=None, context=None):
+def register(model_cls, renderer_cls=None, context=None):
     """
     Register an :class:`~.Renderer` class for a page or section model. This
-    function can also be used as a decorator for your model class::
+    function can also be used as a decorator for your renderer class::
 
-        @renderer.register(FancyPageRenderer)
-        class FancyPage(Page):
+        @renderer.register(FancyPage)
+        class FancyPageRenderer(PageRenderer):
             ...
 
-    For :class:`~..models.Section` classes it is possible to define a
-    context in which a renderer should be used. A context can be a page type, a
-    region name or a tuple of page typen and region name. You can register
-    multiple renderer classes with different contexts for a section::
+    :class:`Section renderer <.SectionRenderer>` can be applied context
+    specific. A context can be a page type, a region name or a tuple of page
+    type and region name::
 
-        @renderer.register(MainSectionRenderer, context='main')
-        @renderer.register(FancySectionRenderer, context=(FancyPage, 'main'))
-        class FancySection(Section):
+        @renderer.register(FancySection, context='main')
+        class MainRegionFancySectionRenderer(SectionRenderer):
             ...
 
-    In this example the `FancySectionRenderer` will be used when the section
-    appears on a `FancyPage` in a 'main' region. The `MainSectionRenderer` will
-    be used for all 'main' regions on all other pages. And in all other contexts
-    :class:`~.SectionRenderer` will be used. See also
-    :func:`~.get_section_renderer`.
+    or::
 
-    :param renderer_cls: the renderer class to be registered
-    :type renderer_cls: :class:`~.Renderer`
-    :param model_cls: the model for which the renderer should be used
+        @renderer.register(FancySection, context=(FancyPage, 'main'))
+        class FancyPageMainRegionFancySectionRenderer(SectionRenderer):
+            ...
+
+    This allows you to use different renderers depending on where a section
+    appears. See :func:`~.get_section_renderer` for more details about how a
+    renderer will be choosen.
+
+    :param model_cls: model to be rendered
     :type model_cls: :class:`~.models.Page` or :class:`~.models.Section`
-    :param context: a context in which a section should be rendered with the renderer class
-    :type context: :class:`~.models.Page` or str or tuple of both
+    :param renderer_cls: renderer class
+    :type renderer_cls: :class:`~.Renderer`
+    :param context: context where a section renderer should be applied
+    :type context: :class:`~.models.Page` or str or tuple of both, optional
     """
-    def _register(model_cls):
+    def _register(renderer_cls):
         if issubclass(model_cls, Page):
             REGISTRY[model_cls] = renderer_cls
         else:
@@ -47,8 +49,8 @@ def register(renderer_cls, model_cls=None, context=None):
         return model_cls
 
     # Usage as function.
-    if model_cls:
-        _register(model_cls)
+    if renderer_cls:
+        _register(renderer_cls)
 
     # Usage as decorator.
     else:
