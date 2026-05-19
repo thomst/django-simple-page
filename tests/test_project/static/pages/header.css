@@ -1,4 +1,14 @@
-div.header {
+header {
     border-bottom: 3px solid #333;
     padding: 2vw;
+    height: 16vh;
+}
+aside {
+    height: 84vh;
+}
+main {
+    min-height: 64vh;
+}
+footer {
+    min-height: 20vh;
 }

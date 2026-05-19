@@ -1,12 +1,12 @@
 {% extends 'pages/main_page.html' %}
 
 {% block content %}
-    <div class="header">
+    <header>
         <p><b>[{{ regions.header.title }}]</b></p>
         <h2>{{ header_info }}</h2>
         {% for section in regions.header.sections %}
             {{ section.html }}
         {% endfor %}
-    </div>
+    </header>
     {{ block.super }}
 {% endblock %}
