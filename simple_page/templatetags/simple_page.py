@@ -11,10 +11,20 @@ def menu(page, max_level=None, include_root=False):
     "active". Each menu list will have a css class "nav-level-x" where x is the
     level of the menu starting with 1.
 
+    The template being used for rendering the menu is "simple_page/menu.html".
+    You can overwrite it to your needs. The context for the template will
+    contain the following variables:
+
+    - `page`: the current page
+    - `max_level`: the maximum level of submenus
+    - `nodes`: the page nodes to be rendered in the menu
+    - `root`: the root page if `include_root` is True
+
     :param page: current page
     :type page: :class:`~.models.Page`
     :param int max_level: maximum level of submenus, defaults to None
-    :param bool include_root: whether to include the root page, defaults to False
+    :param bool include_root: whether to include the root page, defaults to
+        False
     :return dict: the context for the menu template
     """
     context = dict()
