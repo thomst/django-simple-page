@@ -9,8 +9,10 @@
    :maxdepth: 1
 
    topics/getting_started
-   topics/concepts
-   topics/api_reference
+   topics/pages_and_sections
+   topics/renderer
+   topics/admin_integration
+   topics/utils
    genindex
    modindex
 
