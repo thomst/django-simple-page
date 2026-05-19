@@ -29,7 +29,8 @@ def menu(page, max_level=None, include_root=False):
 @register.filter
 def is_active(page, node):
     """
-    Returns True for the current page and its ancestors.
+    Filter tag returning True for the current page and its ancestors. False
+    otherwise.
 
     :param page: current page
     :type page: :class:`~.models.Page`
@@ -44,7 +45,7 @@ def is_active(page, node):
 @register.filter
 def level(node):
     """
-    Returns the level of the page node starting with 1.
+    Filter tag returning the level of the page node starting with 1.
 
     :param node: the page node
     :type node: :class:`~.models.Page`
