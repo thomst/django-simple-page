@@ -14,7 +14,7 @@ from simple_page.models import Page, PageSection, Section
 from simple_page import renderer
 from simple_page import __version__
 
-from .models import TextSection, MainPage, ExtraPage
+from .models import TextSection, MainPage, PageWithHeader
 
 
 class FixTestDataMixin:
@@ -25,12 +25,12 @@ class FixTestDataMixin:
         super().setUpClass()
         # Fix the page_type references. The ids in the page fixtures might not
         # fit to the real content type ids.
-        extra_pages = ExtraPage.objects.all()
-        extra_page_type = ContentType.objects.get(model='extrapage')
-        main_pages = Page.objects.exclude(id__in=[p.id for p in extra_pages])
+        header_pages = PageWithHeader.objects.all()
+        header_page_type = ContentType.objects.get(model='pagewithheader')
+        main_pages = Page.objects.exclude(id__in=[p.id for p in header_pages])
         main_page_type = ContentType.objects.get(model='mainpage')
-        for page in extra_pages:
-            page.page_type = extra_page_type
+        for page in header_pages:
+            page.page_type = header_page_type
             page.save()
         for page in main_pages:
             page.page_type = main_page_type
@@ -48,11 +48,7 @@ class AddSectionsMixin:
     @staticmethod
     def add_section(page, region, text='foobar'):
         section = TextSection.objects.create(text=text)
-        page_section = PageSection.objects.create(
-            page=page,
-            section=section,
-            region=region
-        )
+        PageSection.objects.create(page=page, section=section, region=region)
 
 
 class SetupRendererMixin:
@@ -138,13 +134,13 @@ class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
     def test_section_renderer_register(self):
         section = TextSection.objects.first()
         main_page = MainPage.objects.first()
-        extra_page = ExtraPage.objects.first()
+        header_page = PageWithHeader.objects.first()
 
         self.assertEqual(self.section_renderer[1], renderer.get_section_renderer(section, main_page, 'main'))
         self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, main_page, 'footer'))
-        self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, extra_page, 'footer'))
+        self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, header_page, 'footer'))
         self.assertEqual(self.section_renderer[3], renderer.get_section_renderer(section, main_page, 'sidebar'))
-        self.assertEqual(self.section_renderer[4], renderer.get_section_renderer(section, extra_page, 'sidebar'))
+        self.assertEqual(self.section_renderer[4], renderer.get_section_renderer(section, header_page, 'sidebar'))
 
 
 class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, TestCase):
@@ -235,7 +231,7 @@ class PageTests(AddSectionsMixin, FixTestDataMixin, TestCase):
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
             child = page.resolve_obj()
-            self.assertTrue(isinstance(child, (MainPage, ExtraPage)))
+            self.assertTrue(isinstance(child, (MainPage, PageWithHeader)))
 
     def test_get_regions(self):
         page = MainPage.objects.first()
@@ -286,7 +282,7 @@ class AdminBackendTests(FixTestDataMixin, TestCase):
     def setUp(self):
         self.client.force_login(User.objects.first())
         self.main_page_type = ContentType.objects.get(model='mainpage')
-        self.extra_page_type = ContentType.objects.get(model='extrapage')
+        self.header_page_type = ContentType.objects.get(model='pagewithheader')
 
     def test_page_list_view(self):
         url = reverse('admin:simple_page_page_changelist')
@@ -309,40 +305,40 @@ class AdminBackendTests(FixTestDataMixin, TestCase):
                 regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
                 self.assertRegex(resp.content.decode('utf8'), regex)
 
-    def test_extra_page_changeform_regions(self):
-        page = Page.objects.filter(page_type=self.extra_page_type).first()
+    def test_header_page_changeform_regions(self):
+        page = Page.objects.filter(page_type=self.header_page_type).first()
         change_page_url = reverse('admin:simple_page_page_change', args=(page.id,))
-        change_extra_page_url = reverse('admin:test_project_extrapage_change', args=(page.id,))
-        add_extra_page_url = reverse('admin:test_project_extrapage_add')
+        change_header_page_url = reverse('admin:test_project_pagewithheader_change', args=(page.id,))
+        add_header_page_url = reverse('admin:test_project_pagewithheader_add')
 
-        for url in [change_page_url, change_extra_page_url, add_extra_page_url]:
+        for url in [change_page_url, change_header_page_url, add_header_page_url]:
             resp = self.client.get(url)
             self.assertEqual(resp.status_code, 200)
-            for _, title in ExtraPage.get_regions():
+            for _, title in PageWithHeader.get_regions():
                 regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
                 self.assertRegex(resp.content.decode('utf8'), regex)
 
     def test_choose_page_type_mixin(self):
         main_page_href = f'?page_type={self.main_page_type.id}'
-        extra_page_url = reverse('admin:test_project_extrapage_add')
+        header_page_url = reverse('admin:test_project_pagewithheader_add')
         url = reverse('admin:simple_page_page_add')
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
-        for page_model in [MainPage, ExtraPage]:
+        for page_model in [MainPage, PageWithHeader]:
             regex = r'<a[^>]+>\s*Add {}\s*</a>'.format(page_model._meta.verbose_name)
             self.assertRegex(resp.content.decode('utf8'), regex)
             self.assertIn(main_page_href, resp.content.decode('utf8'))
-            self.assertIn(extra_page_url, resp.content.decode('utf8'))
+            self.assertIn(header_page_url, resp.content.decode('utf8'))
 
     def test_get_page_type_mixin_with_invalid_id(self):
         url = f"{reverse('admin:simple_page_page_add')}?page_type=9999"
         self.assertRaises(ValueError, self.client.get, url)
 
     def test_set_page_type_mixin(self):
-        add_page_url = reverse('admin:test_project_extrapage_add')
+        add_page_url = reverse('admin:test_project_pagewithheader_add')
         resp = self.client.get(add_page_url)
         self.assertEqual(resp.status_code, 200)
-        input = f'<input type="hidden" name="page_type" value="{self.extra_page_type.id}" id="id_page_type">'
+        input = f'<input type="hidden" name="page_type" value="{self.header_page_type.id}" id="id_page_type">'
         self.assertInHTML(input, resp.content.decode('utf8'))
 
 

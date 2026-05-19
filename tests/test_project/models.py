@@ -4,7 +4,7 @@ from simple_page.models import Section
 from simple_page.models import Page
 from simple_page import renderer
 
-from .renderer import ExtraPageRenderer
+from .renderer import PageWithHeaderRenderer
 
 
 class MainPage(Page):
@@ -18,14 +18,14 @@ class MainPage(Page):
         proxy = True
 
 
-@renderer.register(ExtraPageRenderer)
-class ExtraPage(Page):
+@renderer.register(PageWithHeaderRenderer)
+class PageWithHeader(Page):
     REGIONS = [
-        ('extra', 'Extra Region'),
+        ('header', 'Header'),
         *MainPage.REGIONS
     ]
 
-    special_info = models.CharField(max_length=255, blank=True)
+    header_info = models.CharField(max_length=255, blank=True)
 
 
 class TextSection(Section):
