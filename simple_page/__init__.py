@@ -9,11 +9,13 @@ the basic stuff, but retain all your freedom.
 Features
 ========
 
-- **Tree structured Pages**: By `django-mptt <https://django-mptt.readthedocs.io/en/latest/>`_.
+- **Tree structured Pages**: By `django-mptt`_.
 - **Pages and sections**: Assigning sections to regions on pages.
 - **Renderer**: Each page or section can have its own renderer.
 - **Simple yet powerful concept**: Everything can be customized by subclassing.
 - **Admin backend integration**: Easy to use. Order elements via drag and drop.
+
+.. _django-mptt: https://django-mptt.readthedocs.io/en/latest/
 
 Basic Concept
 =============
@@ -59,8 +61,15 @@ just dragging them to their new position. It's simple and sufficient.
 Utils
 =====
 
+Menu template tag
+-----------------
 We provide an inclusion template tag to generate a tree based menu using nested
 lists. Still you are free to build your own menu logic or customize the default
 menu template to your needs. See :func:`~.templatetags.simple_page.menu` for
 more details.
+
+Page view
+---------
+A simple view function to render a page by its slug. Use it in your url
+configuration. See :func:`~.views.page_view` for more details.
 """

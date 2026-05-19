@@ -1,3 +1,20 @@
+"""
+Renderer classes for pages and sections
+=======================================
+
+To build HTML for a page or section object a renderer class is used. While a
+section renderer produces a html snippet representing the section object, a page
+renderer provides a full html document for a page. Including all its sections.
+
+Nevertheless, both renderers are based on the same concept, using the proven
+triad of `get_template_name`, `get_context` and `render` methods.
+
+There is a default renderer for pages as well as for sections. Which are
+probably sufficient for most use cases. Still you are free to write your own
+renderer classes and register them for your page and section models. The only
+thing a renderer class has to provide is a `render` method returning valid HTML.
+"""
+
 import re
 from django.template.loader import get_template
 from django.forms.widgets import MediaDefiningClass
@@ -132,6 +149,7 @@ class BaseRenderer(metaclass=MediaDefiningClass):
         self.request = request
         self.kwargs = kwargs
 
+    # TODO: Use a get_template method instead.
     def get_template_name(self):
         """
         Return the name of the template. If :attr:`~.template_name` is set it
@@ -182,7 +200,6 @@ class SectionRenderer(BaseRenderer):
     """
 
 
-
 class PageRenderer(BaseRenderer):
     """
     Renderer for Page instances.
@@ -190,8 +207,10 @@ class PageRenderer(BaseRenderer):
 
     def get_section_data(self, section, region):
         """
-        Return a dictonary holding the section as `obj` and its rendered html as
-        `html`.
+        Build and return a dictionary holding the section's data:
+
+        - `obj`: section object itself
+        - `html`: section's html build by the renderer returned by :func:`~.get_section_renderer`
 
         :param section: section object
         :type section: :class:`~.models.Section`
@@ -208,9 +227,11 @@ class PageRenderer(BaseRenderer):
 
     def get_region_data(self, region, title):
         """
-        Return a dictonary with the `name`, the `title` and the `sections` of a
-        region. `sections` will be a dictonary build by
-        :meth:`~.get_section_data`.
+        Build and return a dictionary holding the region's data:
+
+        - `name`: region name
+        - `title`: region title
+        - `sections`: list of section data build by :meth:`~.get_section_data`
 
         :param str region: region name
         :param str tilte: region title
@@ -225,8 +246,8 @@ class PageRenderer(BaseRenderer):
 
     def get_media_assets(self):
         """
-        Merge all media objects of the page and the sections renderers. Return
-        them as string.
+        Merge media definitions of the page's and all sections' renderers.
+        Return them as string.
 
         :return str: merged media assets
         """
@@ -239,15 +260,15 @@ class PageRenderer(BaseRenderer):
 
     def get_context(self):
         """
-        Add regions and media assets to the context.
+        Build rendering context:
 
-        `regions` will be a dictonary mapping the regions slug name to the
-        regions data build by :meth:`~.get_media_assets`. As a shortcut earch
-        region data will be also added with its slug name as its own template
-        variable.
+        - `page`: page object
+        - `media`: media assets build by :meth:`~.get_media_assets`
+        - `regions`: mapping of region names to their data build by
+          :meth:`~.get_region_data`
 
-        `media` will be the merged media assets from all renderers being
-        involved as string. See :meth:`~.get_media_assets`.
+        As a shortcut each region data will also be added using the region's
+        name as an own context variable.
 
         :return: rendering context
         :rtype: dict

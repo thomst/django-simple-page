@@ -1,3 +1,35 @@
+"""
+Pages and Sections
+##################
+
+Pages and sections are the basic building blocks of your website. Pages define
+regions in which sections can be placed. And sections can be any kind of content
+you want to see on your website.
+
+Pages and sections are defined by subclassing the :class:`~.models.Page` and
+:class:`~.models.Section` model::
+
+    from simple_page.models import Page, Section
+
+    class FancyPage(Page):
+        REGIONS = [
+            ('main', 'Main Region'),
+            ('sidebar', 'Sidebar'),
+            ('footer', 'Footer'),
+        ]
+
+        class Meta:
+            proxy = True
+
+
+    class FancySection(Section):
+        title = models.CharField(max_length=255, blank=True)
+        text = models.TextField(blank=True)
+
+
+With those two models you are able to build a simple website.
+"""
+
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils.managers import InheritanceManager
 
@@ -8,16 +40,21 @@ from django.contrib.contenttypes.models import ContentType
 
 class Section(models.Model):
     """
-    This model is the base model for what ever content you want to see on your
-    website. It does not has any fields on its own but provides a many-to-many
-    relationship to the `Page` model.
+    Base model for what ever content you want to see on your website. It does
+    not has any fields by its own but can be equipped by sublcasses.
 
-    To be able to access the child classes' objects this class uses the
-    InheritanceManager_ of the django-model-utils project.
+    Sections are related to pages via a many-to-many relationship that holds the
+    region in which a section should be rendered and an index field to make the
+    sections orderable whithin that region.
+    """
+
+    objects = InheritanceManager()
+    """
+    We use the `InheritanceManager`_ to provide a simple api to access child
+    class objects.
 
     .. _InheritanceManager: https://django-model-utils.readthedocs.io/en/latest/managers.html#inheritancemanager
-    """
-    objects = InheritanceManager()
+"""
 
     def __str__(self):
         if type(self) is Section:
@@ -32,21 +69,19 @@ class Section(models.Model):
 
 class Page(MPTTModel):
     """
-    This is the base model for all pages. The only thing a subclass has to do is
-    to setup the regions it wants to use. Since the database layout of the base
-    class is fully functional, it is totally sufficient to define your page
-    model as a proxy. Still you are free to use a concrete child model with all
-    the additional fields and logic you whish for.
+    Base model for all pages.
 
-    The sections of a page are available as a region specific queryset using the
-    region's name as an object attribute.
+    The only thing a subclass has to do is to setup its :attr:`regions
+    <.Page.REGIONS>`. Since the database layout is fully functional, you may
+    define your own page model as a proxy if you do not want to provide
+    additional fields.
 
-    The base model takes care of the following things:
-    - As a `mptt` model it allows to arrange pages in treelike structures.
-    - It has a region specific many-to-many relationship to the `Section` model.
-    - It has a `slug` field which can be used in your url path.
-    - It has a `ContentType` relation that points to the Page's child class.
-    - It provides some logic to handle the regions a subclass sets.
+    Sections associated with a page are accessible by their region. Use the
+    region's name to get a queryset of sections belonging to that region.
+
+    The page model is tree structured by `django-mptt`_.
+
+    .. _django-mptt: https://django-mptt.readthedocs.io/en/latest/
     """
 
     # FIXME: We should use REGIONS = None and raise a NotImplementedError. But
@@ -54,7 +89,7 @@ class Page(MPTTModel):
     # on a Page objects occacionally.
     REGIONS = []
     """
-    REGIONS must be set by a subclass as a list of tuples holding the region's
+    REGIONS must be set by subclasses as a list of tuples holding the region's
     name and its title. Something like::
 
         REGIONS = [
