@@ -102,7 +102,7 @@ class SetupRendererMixin:
                 context['extra'] = 'extra-data'
                 return context
         cls.page_renderer = type('MainPageRenderer', (BaseRenderer,), dict())
-        renderer.register(cls.page_renderer, MainPage)
+        renderer.register(MainPage, cls.page_renderer)
 
     @classmethod
     def register_section_renderer(cls):
@@ -119,10 +119,10 @@ class SetupRendererMixin:
                     context['extra'] = self.extra_data
                     return context
             cls.section_renderer[i] = (type(f'TextSection{i}Renderer', (BaseRenderer,), dict()))
-        renderer.register(cls.section_renderer[1], TextSection, context=(MainPage, 'main'))
-        renderer.register(cls.section_renderer[2], TextSection, context='footer')
-        renderer.register(cls.section_renderer[3], TextSection, context=MainPage)
-        renderer.register(cls.section_renderer[4], TextSection)
+        renderer.register(TextSection, cls.section_renderer[1], context=(MainPage, 'main'))
+        renderer.register(TextSection, cls.section_renderer[2], context='footer')
+        renderer.register(TextSection, cls.section_renderer[3], context=MainPage)
+        renderer.register(TextSection, cls.section_renderer[4])
 
 
 class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):

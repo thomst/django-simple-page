@@ -2,9 +2,6 @@ from django.db import models
 
 from simple_page.models import Section
 from simple_page.models import Page
-from simple_page import renderer
-
-from .renderer import PageWithHeaderRenderer
 
 
 class MainPage(Page):
@@ -18,7 +15,6 @@ class MainPage(Page):
         proxy = True
 
 
-@renderer.register(PageWithHeaderRenderer)
 class PageWithHeader(Page):
     REGIONS = [
         ('header', 'Header'),
