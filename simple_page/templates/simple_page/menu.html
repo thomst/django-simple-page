@@ -1,5 +1,10 @@
 {% load simple_page mptt_tags %}
 <ul class="nav-level-1">
+    {% if root %}
+        <li{% if page.is_root_node %} class="active"{% endif %}>
+            <a href="{{ root.get_absolute_url }}">{{ root.title }}</a>
+        </li>
+    {% endif %}
     {% recursetree nodes %}
         <li{% if page|is_active:node %} class="active"{% endif %}>
             <a href="{{ node.get_absolute_url }}">{{ node.title }}</a>
