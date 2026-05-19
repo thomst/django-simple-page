@@ -12,6 +12,7 @@ from django.template import Template, Context
 
 from simple_page.models import Page, PageSection, Section
 from simple_page import renderer
+from simple_page import __version__
 
 from .models import TextSection, MainPage, ExtraPage
 
