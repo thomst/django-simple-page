@@ -1,7 +1,4 @@
 """
-Pages and Sections
-##################
-
 Pages and sections are the basic building blocks of your website. Pages define
 regions in which sections can be placed. And sections can be any kind of content
 you want to see on your website.

@@ -1,7 +1,4 @@
 """
-Renderer classes for pages and sections
-=======================================
-
 To build HTML for a page or section object a renderer class is used. While a
 section renderer produces a html snippet representing the section object, a page
 renderer provides a full html document for a page. Including all its sections.
@@ -11,8 +8,22 @@ triad of `get_template_name`, `get_context` and `render` methods.
 
 There is a default renderer for pages as well as for sections. Which are
 probably sufficient for most use cases. Still you are free to write your own
-renderer classes and register them for your page and section models. The only
-thing a renderer class has to provide is a `render` method returning valid HTML.
+renderer classes and :func:`~.register` them for your page and section models.
+The only thing a renderer class has to provide is a `render` method returning
+valid HTML.
+
+Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
+metaclass. They can be equipped with a `Media` classes like django's forms and
+widgets::
+
+    class FancySectionRenderer(SectionRenderer):
+        class Media:
+            css = dict(all=['fancy_section.css'])
+            js = ['fancy_section.js']
+
+It is the responsibility of the page renderer to merge the media
+definitions of all renderers involved and provide them as a `media` template
+variable. For more details see :meth:`~.PageRenderer.get_media_assets`.
 """
 
 import re
@@ -120,69 +131,27 @@ def get_section_renderer(section, page=None, region=None):
 
 class BaseRenderer(metaclass=MediaDefiningClass):
     """
-    Base renderer class. This class provides the basic functionality to render a
-    Page or Section instance. It uses the proven triad of `get_template_name`,
-    `get_context` and `render` methods. But can be customized to any extend.
-    Everything a child class has to provide is a `render` method returning valid
-    HTML.
-
-    Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
-    metaclass. They can be equipped with `Media` classes as you know from django
-    forms and widgets. Those media assets will be merged by a page renderer and
-    provided as a 'media' template variable.
-
-    :param obj: object to be rendered
-    :type obj: :class:`~.models.Page` or :class:`~.models.Section`
-    :param request: request object (default: None)
-    :type request: :class:`~django.http.HttpRequest`
-    :param kwargs: Additional data as keyword arguments (default empty dict)
+    Base renderer class.
     """
 
     template_name = None
     """
-    Name of the template to be used for rendering. See :meth:`~.get_template_name`.
+    Template name. Default is None. See :meth:`~.get_template_name`.
     """
 
-
     def __init__(self, obj, request=None, **kwargs):
+        """
+        Initialize the renderer.
+
+        :param obj: object to be rendered
+        :type obj: :class:`~.models.Page` or :class:`~.models.Section`
+        :param request: request object (default: None)
+        :type request: :class:`~django.http.HttpRequest`
+        :param kwargs: Additional data as keyword arguments (default: dict())
+        """
         self.obj = obj
         self.request = request
         self.kwargs = kwargs
-
-    # TODO: Use a get_template method instead.
-    def get_template_name(self):
-        """
-        Return the name of the template. If :attr:`~.template_name` is set it
-        will be returned. Otherwise the template name will be constructed as
-        follows:
-
-        - Using 'pages' or 'sections' as folder - depending on the object's type.
-        - And converting the object's class name to snake case with a html
-          suffix as file name.
-
-        For example the template name for a MyTextSection class would be
-        `'sections/my_text_section.html'`.
-        """
-        if self.template_name:
-            return self.template_name
-        else:
-            cls_name = self.obj.__class__.__name__
-            template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
-            folder = 'pages' if isinstance(self.obj, Page) else 'sections'
-            return f'{folder}/{template_name}.html'
-
-    def get_context(self):
-        """
-        Build and return rendering context. Just a dict with the section or page
-        object.
-
-        :return: rendering context
-        :rtype: dict
-        """
-        context = self.kwargs.get('extra_context', dict())
-        key = 'page' if isinstance(self.obj, Page) else 'section'
-        context[key] = self.obj
-        return context
 
     def render(self):
         """
@@ -198,12 +167,52 @@ class SectionRenderer(BaseRenderer):
     """
     Renderer for Section instances.
     """
+    # TODO: Use a get_template method instead.
+    def get_template_name(self):
+        """
+        Return template name. If :attr:`~.template_name` is set it will be
+        returned. Otherwise the template name will be constructed as follows:
+
+        "sections/<section_class_name_in_snake_case>.html"
+        """
+        if self.template_name:
+            return self.template_name
+        else:
+            cls_name = self.obj.__class__.__name__
+            template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
+            return f'sections/{template_name}.html'
+
+    def get_context(self):
+        """
+        Build and return rendering context:
+
+        - `section`: section object
+
+        :return: rendering context
+        :rtype: dict
+        """
+        context = self.kwargs.get('extra_context', dict())
+        context['section'] = self.obj
+        return context
 
 
 class PageRenderer(BaseRenderer):
     """
     Renderer for Page instances.
     """
+    def get_template_name(self):
+        """
+        Return template name. If :attr:`~.template_name` is set it will be
+        returned. Otherwise the template name will be constructed as follows:
+
+        "pages/<page_class_name_in_snake_case>.html"
+        """
+        if self.template_name:
+            return self.template_name
+        else:
+            cls_name = self.obj.__class__.__name__
+            template_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
+            return f'pages/{template_name}.html'
 
     def get_section_data(self, section, region):
         """
@@ -274,7 +283,8 @@ class PageRenderer(BaseRenderer):
         :rtype: dict
         """
         # Add regions, sections and media to the context.
-        context = super().get_context()
+        context = self.kwargs.get('extra_context', dict())
+        context['page'] = self.obj
         context['media'] = self.get_media_assets()
         context['regions'] = dict()
         for region, title in self.obj.get_regions():
