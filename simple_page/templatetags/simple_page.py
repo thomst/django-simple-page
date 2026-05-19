@@ -18,7 +18,7 @@ def menu(page, max_level=None, include_root=False):
     - `page`: the current page
     - `max_level`: the maximum level of submenus
     - `nodes`: the page nodes to be rendered in the menu
-    - `root`: the root page if `include_root` is True
+    - `root`: the root page if `include_root` is True, otherwise None
 
     :param page: current page
     :type page: :class:`~.models.Page`
@@ -31,8 +31,7 @@ def menu(page, max_level=None, include_root=False):
     context['page'] = page
     context['max_level'] = max_level
     context['nodes'] = page.get_root().get_descendants()
-    if include_root:
-        context['root'] = page.get_root()
+    context['root'] = page.get_root() if include_root else None
     return context
 
 
