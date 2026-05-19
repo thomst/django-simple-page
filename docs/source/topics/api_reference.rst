@@ -20,3 +20,10 @@ Admin
 
 .. automodule:: simple_page.admin
    :members: BasePageAdmin
+
+
+Utils
+=====
+
+.. automodule:: simple_page.templatetags.simple_page
+   :members:
