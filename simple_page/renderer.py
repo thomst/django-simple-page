@@ -8,8 +8,9 @@ REGISTRY = dict()
 
 def register(model_cls, renderer_cls=None, context=None):
     """
-    Register an :class:`~.Renderer` class for a page or section model. This
-    function can also be used as a decorator for your renderer class::
+    Register a :class:`renderer class <.BaseRenderer>` for a page or section
+    model. This function can also be used as a decorator for your renderer
+    class::
 
         @renderer.register(FancyPage)
         class FancyPageRenderer(PageRenderer):
@@ -36,7 +37,7 @@ def register(model_cls, renderer_cls=None, context=None):
     :param model_cls: model to be rendered
     :type model_cls: :class:`~.models.Page` or :class:`~.models.Section`
     :param renderer_cls: renderer class
-    :type renderer_cls: :class:`~.Renderer`
+    :type renderer_cls: :class:`~.PageRenderer` or :class:`~.SectionRenderer`
     :param context: context where a section renderer should be applied
     :type context: :class:`~.models.Page` or str or tuple of both, optional
     """
@@ -84,9 +85,9 @@ def get_section_renderer(section, page=None, region=None):
     :class:`~.SectionRenderer` is used as fallback.
 
     :param obj: section instance
-    :type obj: :class:`~..models.Section`
+    :type obj: :class:`~.models.Section`
     :param page: page the section will be rendered for
-    :type page: :class:`~..models.Page`
+    :type page: :class:`~.models.Page`
     :param str region: region the section  will be rendered in
     :return: renderer class
     :rtype: :class:`~.SectionRenderer`
@@ -119,7 +120,12 @@ class BaseRenderer(metaclass=MediaDefiningClass):
     :type request: :class:`~django.http.HttpRequest`
     :param kwargs: Additional data as keyword arguments (default empty dict)
     """
+
     template_name = None
+    """
+    Name of the template to be used for rendering. See :meth:`~.get_template_name`.
+    """
+
 
     def __init__(self, obj, request=None, **kwargs):
         self.obj = obj
