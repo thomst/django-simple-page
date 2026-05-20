@@ -13,8 +13,6 @@
    topics/renderer
    topics/admin_integration
    topics/utils
-   genindex
-   modindex
 
 
 Welcome

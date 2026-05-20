@@ -1,6 +1,9 @@
 Admin Integration
 #################
 
+Overview
+========
+
 .. automodule:: simple_page.admin
 
 
