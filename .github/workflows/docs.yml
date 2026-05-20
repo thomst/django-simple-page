@@ -31,7 +31,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Build docs
-        uses: ammaraskar/sphinx-action@7.0.0
+        uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "docs/"
       - name: Upload artifact
