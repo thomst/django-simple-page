@@ -1,7 +1,8 @@
 """
-The admin integration for django-simple-page is realized by a customized page
-modeladmin. This modeladmin is registered for the page model and will be used
-for all proxy page models. It provides the following features:
+The admin integration for django-simple-page is realized by a customized
+:class:`page modeladmin <.PageAdmin>`. This modeladmin is registered for the
+page model and will be used for all proxy page models. It provides the following
+features:
 
 - Let pages be orderable by drag and drop in the admin changelist view.
 - Let the user choose the type of the page before rendering the page's add form.

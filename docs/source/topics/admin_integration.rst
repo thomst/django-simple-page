@@ -7,5 +7,27 @@ Admin Integration
 Api Reference
 =============
 
+Region inline
+-------------
+
+.. autoclass:: simple_page.admin.BaseRegionInline
+
+
+Mixins
+------
+
+.. autoclass:: simple_page.admin.GetPageModelMixin
+
+.. autoclass:: simple_page.admin.SetPageTypeMixin
+
+.. autoclass:: simple_page.admin.ChoosePageTypeMixin
+
+.. autoclass:: simple_page.admin.RenderPageRegionsMixin
+
+
+ModelAdmins
+-----------
+
 .. autoclass:: simple_page.admin.PageAdmin
-   :members:
+
+.. autoclass:: simple_page.admin.BasePageAdmin
