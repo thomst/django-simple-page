@@ -1,4 +1,4 @@
-Sphinx<5,>=3.5.4
+Sphinx
 sphinx-book-theme
 Django
 django-mptt
