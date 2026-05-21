@@ -1,9 +1,9 @@
-from simple_page import renderer
-from.models import PageWithHeader, TextSection
+from simple_page import renderers
+from .models import PageWithHeader, TextSection
 
 
-@renderer.register(PageWithHeader)
-class PageWithHeaderRenderer(renderer.PageRenderer):
+@renderers.register(PageWithHeader)
+class PageWithHeaderRenderer(renderers.PageRenderer):
     class Media:
         css = dict(all=['pages/header.css'])
 
@@ -13,8 +13,8 @@ class PageWithHeaderRenderer(renderer.PageRenderer):
         return context
 
 
-@renderer.register(TextSection)
-class TextSectionRenderer(renderer.SectionRenderer):
+@renderers.register(TextSection)
+class TextSectionRenderer(renderers.SectionRenderer):
     def get_context(self):
         context = super().get_context()
         context['title'] = self.obj.title or f'{self.obj.text[:8]} ...'
@@ -22,8 +22,8 @@ class TextSectionRenderer(renderer.SectionRenderer):
         return context
 
 
-@renderer.register(TextSection, context='footer')
-class FooterTextSectionRenderer(renderer.SectionRenderer):
+@renderers.register(TextSection, context='footer')
+class FooterTextSectionRenderer(renderers.SectionRenderer):
     def get_context(self):
         context = super().get_context()
         context['text'] = f'{self.obj.text[:80]} ...'

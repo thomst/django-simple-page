@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.template import Template, Context
 
 from simple_page.models import Page, PageSection, Section
-from simple_page import renderer
+from simple_page import renderers
 from simple_page import __version__
 
 from .models import TextSection, MainPage, PageWithHeader
@@ -69,13 +69,13 @@ class SetupRendererMixin:
 
     @classmethod
     def reset_registry(cls):
-        cls.renderer_registry = copy.deepcopy(renderer.REGISTRY)
-        [renderer.REGISTRY.pop(k) for k in renderer.REGISTRY.copy()]
+        cls.renderer_registry = copy.deepcopy(renderers.REGISTRY)
+        [renderers.REGISTRY.pop(k) for k in renderers.REGISTRY.copy()]
 
     @classmethod
     def restore_registry(cls):
-        [renderer.REGISTRY.pop(k) for k in renderer.REGISTRY.copy()]
-        renderer.REGISTRY.update(cls.renderer_registry)
+        [renderers.REGISTRY.pop(k) for k in renderers.REGISTRY.copy()]
+        renderers.REGISTRY.update(cls.renderer_registry)
 
     @classmethod
     def setup_templates(cls):
@@ -93,7 +93,7 @@ class SetupRendererMixin:
 
     @classmethod
     def register_page_renderer(cls):
-        class BaseRenderer(renderer.PageRenderer):
+        class BaseRenderer(renderers.PageRenderer):
             class Media:
                 css = dict(all=['pages/main_page.css'])
                 js = ['pages/main_page.js']
@@ -102,13 +102,13 @@ class SetupRendererMixin:
                 context['extra'] = 'extra-data'
                 return context
         cls.page_renderer = type('MainPageRenderer', (BaseRenderer,), dict())
-        renderer.register(MainPage, cls.page_renderer)
+        renderers.register(MainPage, cls.page_renderer)
 
     @classmethod
     def register_section_renderer(cls):
         cls.section_renderer = dict()
         for i in range(1, 5):
-            class BaseRenderer(renderer.SectionRenderer):
+            class BaseRenderer(renderers.SectionRenderer):
                 class Media:
                     css = dict(all=[f'text_section_{i}.css'])
                     js = [f'text_section_{i}.js']
@@ -119,28 +119,28 @@ class SetupRendererMixin:
                     context['extra'] = self.extra_data
                     return context
             cls.section_renderer[i] = (type(f'TextSection{i}Renderer', (BaseRenderer,), dict()))
-        renderer.register(TextSection, cls.section_renderer[1], context=(MainPage, 'main'))
-        renderer.register(TextSection, cls.section_renderer[2], context='footer')
-        renderer.register(TextSection, cls.section_renderer[3], context=MainPage)
-        renderer.register(TextSection, cls.section_renderer[4])
+        renderers.register(TextSection, cls.section_renderer[1], context=(MainPage, 'main'))
+        renderers.register(TextSection, cls.section_renderer[2], context='footer')
+        renderers.register(TextSection, cls.section_renderer[3], context=MainPage)
+        renderers.register(TextSection, cls.section_renderer[4])
 
 
 class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer_registry(self):
         page = MainPage.objects.first()
-        self.assertEqual(self.page_renderer, renderer.get_page_renderer(page))
+        self.assertEqual(self.page_renderer, renderers.get_page_renderer(page))
 
     def test_section_renderer_register(self):
         section = TextSection.objects.first()
         main_page = MainPage.objects.first()
         header_page = PageWithHeader.objects.first()
 
-        self.assertEqual(self.section_renderer[1], renderer.get_section_renderer(section, main_page, 'main'))
-        self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, main_page, 'footer'))
-        self.assertEqual(self.section_renderer[2], renderer.get_section_renderer(section, header_page, 'footer'))
-        self.assertEqual(self.section_renderer[3], renderer.get_section_renderer(section, main_page, 'sidebar'))
-        self.assertEqual(self.section_renderer[4], renderer.get_section_renderer(section, header_page, 'sidebar'))
+        self.assertEqual(self.section_renderer[1], renderers.get_section_renderer(section, main_page, 'main'))
+        self.assertEqual(self.section_renderer[2], renderers.get_section_renderer(section, main_page, 'footer'))
+        self.assertEqual(self.section_renderer[2], renderers.get_section_renderer(section, header_page, 'footer'))
+        self.assertEqual(self.section_renderer[3], renderers.get_section_renderer(section, main_page, 'sidebar'))
+        self.assertEqual(self.section_renderer[4], renderers.get_section_renderer(section, header_page, 'sidebar'))
 
 
 class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, TestCase):
@@ -148,7 +148,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
     def setUp(self):
         self.page = MainPage.objects.first()
         self.section = TextSection.objects.first()
-        self.page_renderer_class = renderer.get_page_renderer(self.page)
+        self.page_renderer_class = renderers.get_page_renderer(self.page)
         self.page_renderer = self.page_renderer_class(self.page)
         return super().setUp()
 
@@ -175,7 +175,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
 
         # Check Media class definitions and media property of section renderer.
         for region in self.page.get_regions():
-            rndr_class = renderer.get_section_renderer(self.section, self.page, region)
+            rndr_class = renderers.get_section_renderer(self.section, self.page, region)
             for path in rndr_class.Media.css['all']:
                 self.assertIn(path, media)
             for path in rndr_class.Media.js:

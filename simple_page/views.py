@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from .models import Page
-from .renderer import get_page_renderer
+from .renderers import get_page_renderer
 
 
 def page_view(request, slug, **kwargs):

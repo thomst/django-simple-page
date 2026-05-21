@@ -7,4 +7,4 @@ class TestProjectConfig(AppConfig):
 
 
     def ready(self):
-        import test_project.renderer
+        import test_project.renderers
