@@ -15,3 +15,5 @@ Api Reference
 
 .. autoclass:: simple_page.models.Section
    :members:
+
+.. autoclass:: simple_page.models.PageSection

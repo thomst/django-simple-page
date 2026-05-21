@@ -174,9 +174,9 @@ class UpdateIndexesManager(models.Manager):
 
 class PageSection(models.Model):
     """
-    Assign sections to regions on pages using PageSection as an intermediate
-    model for the many-to-many relation between the Page and the Section model.
-    We also provide an index field to make page-sections orderable.
+    PageSection is the intermediate model for the many-to-many relationship
+    between pages and sections. It holds the region in which a section should be
+    rendered and an index field to make sections orderable whithin that region.
     """
     objects = UpdateIndexesManager()
 

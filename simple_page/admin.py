@@ -30,9 +30,10 @@ from .forms import ReorderRelationForm
 
 class BaseRegionInline(admin.TabularInline):
     """
-    Base inline for page sections. This inline is rendered for each region of a
-    page. It uses a custom form to make the sections orderable via drag and
-    drop within a region. For that we use the django-reorder-items-widget_.
+    Inline for the :class:`~.models.PageSection` model. Each region of a page
+    gets its own inline table with sections belonging to that region. We use
+    the django-reorder-items-widget_ to make the sections orderable via drag and
+    drop within their region.
 
     .. _django-reorder-items-widget: https://github.com/thomst/django-reorder-items-widget
     """
