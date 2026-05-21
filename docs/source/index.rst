@@ -10,7 +10,7 @@
 
    topics/getting_started
    topics/pages_and_sections
-   topics/renderer
+   topics/renderers
    topics/admin_integration
    topics/utils
 

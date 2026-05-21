@@ -31,10 +31,10 @@ want, from a simple content type like an article with title and text body to a
 full featured gallery. You build what you need just by subclassing the page and
 section model.
 
-Renderer
---------
+Renderers
+---------
 
-While there are default :mod:`renderers <.renderer>` for pages and sections
+While there are default :mod:`renderers <.renderers>` for pages and sections
 which are probably suitable for most use cases, you are free to completely adapt
 or overwrite them. Each page or section can have its own renderer providing a
 specific rendering logic. And each renderer can have its own Media class

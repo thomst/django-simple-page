@@ -6,8 +6,8 @@ from .renderers import get_page_renderer
 
 def page_view(request, slug, **kwargs):
     """
-    Simple view function for pages. Get the page by its slug, find the right renderer
-    for it and return an HTTP response with the rendered page.
+    Simple view function for pages. Get the page by its slug, find the right
+    renderer for it and return a HTTP response with the rendered page.
 
     :param request: HTTP request
     :type request: :class:`~django.http.HttpRequest`

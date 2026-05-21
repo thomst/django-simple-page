@@ -159,7 +159,7 @@ And a template for your image section as 'templates/sections/image_section.html'
     </figure>
 
 
-See the :doc:`renderer docs <renderer>` for more details about how to name the
+See the :doc:`renderers docs <renderers>` for more details about how to name the
 template files.
 
 
@@ -171,7 +171,7 @@ image section:
 
 .. code-block:: python
 
-    from simple_page.renderer import SectionRenderer
+    from simple_page.renderers import SectionRenderer
 
     class ImageSectionRenderer(SectionRenderer):
         class Media:
@@ -195,7 +195,7 @@ class:
             import my_project.renderers
 
 
-See the :doc:`renderer docs <renderer>` for more details about custom renderer
+See the :doc:`renderers docs <renderers>` for more details about custom renderers
 classes.
 
 

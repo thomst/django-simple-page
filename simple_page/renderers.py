@@ -16,10 +16,15 @@ Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
 metaclass. They can be equipped with a `Media` classes like django's forms and
 widgets::
 
-    class FancySectionRenderer(SectionRenderer):
+.. code-block:: python
+
+    from simple_page import renderers
+
+    class FancySectionRenderer(renderers.SectionRenderer):
         class Media:
             css = dict(all=['fancy_section.css'])
             js = ['fancy_section.js']
+
 
 It is the responsibility of the page renderer to merge the media
 definitions of all renderers involved and provide them as a `media` template
@@ -40,22 +45,22 @@ def register(model_cls, renderer_cls=None, context=None):
     model. This function can also be used as a decorator for your renderer
     class::
 
-        @renderer.register(FancyPage)
-        class FancyPageRenderer(PageRenderer):
+        @renderers.register(FancyPage)
+        class FancyPageRenderer(renderers.PageRenderer):
             ...
 
     :class:`Section renderer <.SectionRenderer>` can be applied context
     specific. A context can be a page type, a region name or a tuple of page
     type and region name::
 
-        @renderer.register(FancySection, context='main')
-        class MainRegionFancySectionRenderer(SectionRenderer):
+        @renderers.register(FancySection, context='main')
+        class MainRegionFancySectionRenderer(renderers.SectionRenderer):
             ...
 
     or::
 
-        @renderer.register(FancySection, context=(FancyPage, 'main'))
-        class FancyPageMainRegionFancySectionRenderer(SectionRenderer):
+        @renderers.register(FancySection, context=(FancyPage, 'main'))
+        class FancyPageMainRegionFancySectionRenderer(renderers.SectionRenderer):
             ...
 
     This allows you to use different renderers depending on where a section
@@ -219,7 +224,8 @@ class PageRenderer(BaseRenderer):
         Build and return a dictionary holding the section's data:
 
         - `obj`: section object itself
-        - `html`: section's html build by the renderer returned by :func:`~.get_section_renderer`
+        - `html`: section's html build by the renderer returned by
+          :func:`~.get_section_renderer`
 
         :param section: section object
         :type section: :class:`~.models.Section`

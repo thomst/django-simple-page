@@ -173,7 +173,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
         context = self.page_renderer.get_context()
         media = str(context['media'])
 
-        # Check Media class definitions and media property of section renderer.
+        # Check Media class definitions and media property of section renderers.
         for region in self.page.get_regions():
             rndr_class = renderers.get_section_renderer(self.section, self.page, region)
             for path in rndr_class.Media.css['all']:
