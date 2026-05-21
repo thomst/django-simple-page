@@ -17,13 +17,11 @@ the basic stuff, but retain all your freedom.
 
 ## Features
 
-- **Tree structured Pages**: By django-mptt_.
+- **Tree structured Pages**: By [django-mptt](https://django-mptt.readthedocs.io/en/latest/).
 - **Pages and sections**: Assigning sections to regions on pages.
 - **Custom rendering logic**: Each page or section can have its own renderer.
 - **Simple yet powerful concept**: Everything can be customized by subclassing.
 - **Admin backend integration**: Easy to use via drag and drop.
-
-.. _django-mptt: https://django-mptt.readthedocs.io/en/latest/
 
 
 ## Contribute
