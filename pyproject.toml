@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "django-simple-page"
 authors = [{name = "Thomas Leichtfuß", email = "thomas.leichtfuss@posteo.de"}]
-description = ""
+description = "Simple yet powerful cms buildkit for Django."
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["django", "django-admin", "cms", "website"]
@@ -41,7 +41,7 @@ dynamic = ["version"]
 [project.urls]
 Homepage = "https://github.com/thomst/django-simple-page"
 Repository = "https://github.com/thomst/django-simple-page"
-Documentation = "https://github.com/thomst/django-simple-page#readme"
+Documentation = "https://thomst.github.io/django-simple-page/"
 
 [tool.setuptools]
 packages = ["simple_page"]
