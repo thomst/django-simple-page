@@ -68,6 +68,8 @@ intersphinx_mapping = {
 html_theme_options = {
     'home_page_in_toc': True,
     'show_toc_level': 3,
+    "repository_url": "https://github.com/thomst/django-simple-page",
+    "use_repository_button": True,
 }
 
 html_sidebars = {
