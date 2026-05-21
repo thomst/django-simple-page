@@ -41,9 +41,8 @@ REGISTRY = dict()
 
 def register(model_cls, renderer_cls=None, context=None):
     """
-    Register a :class:`renderer class <.BaseRenderer>` for a page or section
-    model. This function can also be used as a decorator for your renderer
-    class::
+    Register a renderer class for a page or section model. This function can also be
+    used as a decorator for your renderer class::
 
         @renderers.register(FancyPage)
         class FancyPageRenderer(renderers.PageRenderer):
@@ -60,7 +59,8 @@ def register(model_cls, renderer_cls=None, context=None):
     or::
 
         @renderers.register(FancySection, context=(FancyPage, 'main'))
-        class FancyPageMainRegionFancySectionRenderer(renderers.SectionRenderer):
+        class
+        FancyPageMainRegionFancySectionRenderer(renderers.SectionRenderer):
             ...
 
     This allows you to use different renderers depending on where a section
