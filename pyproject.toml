@@ -9,7 +9,7 @@ description = "Simple yet powerful cms buildkit for Django."
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["django", "django-admin", "cms", "website"]
-license = { text = "BSD-3-Clause"}
+license = "BSD-3-Clause"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Framework :: Django",
@@ -44,11 +44,11 @@ Repository = "https://github.com/thomst/django-simple-page"
 Documentation = "https://thomst.github.io/django-simple-page/"
 
 [tool.setuptools]
-packages = ["simple_page"]
+packages = ["simple_page", "simple_page.templatetags", "simple_page.migrations"]
 include-package-data = false
 
 [tool.setuptools.package-data]
-simple_page = ["templates/**"]
+simple_page = ["templates/**", "static/**"]
 
 [tool.setuptools.dynamic]
 version = {attr = "simple_page.__version__.__version__"}
