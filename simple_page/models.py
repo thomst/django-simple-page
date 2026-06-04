@@ -34,6 +34,8 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 
+from reorder_items_widget import ReorderItemsField
+
 
 class Section(models.Model):
     """
@@ -147,46 +149,19 @@ class Page(MPTTModel):
             raise AttributeError(msg)
 
 
-class UpdateIndexesManager(models.Manager):
-    """
-    Provide methods to set the index of an newly saved object and to fix
-    indexes of a set of items from which one was deleted.
-    """
-    def set_index(self, obj):
-        """
-        If an object is about to be added we give him the next higher
-        index. Call this method from a pre-save signal handler.
-        """
-        items = self.filter(page=obj.page, region=obj.region)
-        max_index = items.aggregate(models.Max('index'))['index__max'] or 0
-        obj.index = max_index + 1
-
-    def update_indexes(self, obj):
-        """
-        If an object was deleted fix the indexes of following objects. Call this
-        method from a post-delete signal handler.
-        """
-        items = self.filter(page=obj.page, region=obj.region)
-        for item in items.filter(index__gt=obj.index):
-            item.index -= 1
-            item.save()
-
-
 class PageSection(models.Model):
     """
     PageSection is the intermediate model for the many-to-many relationship
     between pages and sections. It holds the region in which a section should be
     rendered and an index field to make sections orderable whithin that region.
     """
-    objects = UpdateIndexesManager()
-
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     region = models.CharField('Region', max_length=255)
-    index = models.SmallIntegerField(blank=True)
+    index = ReorderItemsField('Index', grouped_by=['page', 'region'])
 
     class Meta:
-        ordering = ["page__id", "index"]
+        ordering = ["page", "region", "index"]
 
     def __str__(self):
         return f"{self.section}"

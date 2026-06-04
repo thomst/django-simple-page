@@ -8,6 +8,6 @@ class ReorderRelationForm(ModelForm):
     """
     class Meta:
         widgets = {
-            'index': ReorderItemsWidget(attrs={'class': 'hidden'}),
+            'index': ReorderItemsWidget(),
             'region': HiddenInput(),
         }
