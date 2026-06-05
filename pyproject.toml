@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -43,6 +43,12 @@ Homepage = "https://github.com/thomst/django-simple-page"
 Repository = "https://github.com/thomst/django-simple-page"
 Documentation = "https://thomst.github.io/django-simple-page/"
 
+[project.optional-dependencies]
+test = [
+    "Pillow",
+    "coverage",
+]
+
 [tool.setuptools]
 packages = ["simple_page", "simple_page.templatetags", "simple_page.migrations"]
 include-package-data = false
@@ -53,8 +59,5 @@ simple_page = ["templates/**", "static/**"]
 [tool.setuptools.dynamic]
 version = {attr = "simple_page.__version__.__version__"}
 
-[project.optional-dependencies]
-test = [
-    "Pillow",
-    "coverage",
-]
+[tool.check-wheel-contents]
+ignore = ["W004"]
