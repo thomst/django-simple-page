@@ -114,7 +114,7 @@ class Page(MPTTModel):
         return model.objects.get(id=self.id)
 
     title = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(unique=True)
     page_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     sections = models.ManyToManyField(
         Section,
