@@ -56,13 +56,10 @@ class Section(models.Model):
 """
 
     def __str__(self):
-        if type(self) is Section:
-            child_self = self._meta.model.objects.get_subclass(id=self.id)
-            return f"{child_self._meta.verbose_name}: {child_self}"
+        child = Section.objects.get_subclass(pk=self.pk)
+        if type(self) is Section and not type(self) is type(child):
+            return f"{child._meta.verbose_name}: {child}"
         else:
-            # FIXME: This leads to a recursive call if child_self is a Section
-            # as well. This happens when for any reason a section object has no
-            # child class.
             return super().__str__()
 
 
