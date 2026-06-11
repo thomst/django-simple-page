@@ -224,6 +224,7 @@ class PageRenderer(BaseRenderer):
         Build and return a dictionary holding the section's data:
 
         - `obj`: section object itself
+        - `renderer`: renderer object for this section
         - `html`: section's html build by the renderer returned by
           :func:`~.get_section_renderer`
 
@@ -237,7 +238,8 @@ class PageRenderer(BaseRenderer):
         renderer = renderer_cls(section, self.request, **self.kwargs)
         return dict(
             obj=section,
-            html=renderer.render()
+            renderer=renderer,
+            html=renderer.render(),
         )
 
     def get_region_data(self, region, title):
@@ -259,18 +261,17 @@ class PageRenderer(BaseRenderer):
             region_data['sections'].append(section_data)
         return region_data
 
-    def get_media_assets(self):
+    def get_media_assets(self, context):
         """
         Merge media definitions of the page's and all sections' renderers.
         Return them as string.
 
         :return str: merged media assets
         """
-        media = get_page_renderer(self.obj)(self.obj).media
-        for region, _ in self.obj.get_regions():
-            for section in getattr(self.obj, region):
-                section_renderer = get_section_renderer(section, self.obj, region)
-                media += section_renderer(section).media
+        media = self.media
+        for region_data in context['regions'].values():
+            for section_data in region_data['sections']:
+                media += section_data['renderer'].media
         return str(media)
 
     def get_context(self):
@@ -291,10 +292,10 @@ class PageRenderer(BaseRenderer):
         # Add regions, sections and media to the context.
         context = self.kwargs.get('extra_context', dict())
         context['page'] = self.obj
-        context['media'] = self.get_media_assets()
         context['regions'] = dict()
         for region, title in self.obj.get_regions():
             context[region] = self.get_region_data(region, title)
             context['regions'][region] = context[region]
+        context['media'] = self.get_media_assets(context)
 
         return context
