@@ -164,7 +164,7 @@ class BaseRenderer(metaclass=MediaDefiningClass):
         """
         template = get_template(self.get_template_name())
         context = self.get_context()
-        return template.render(context)
+        return template.render(context, self.request)
 
 
 class SectionRenderer(BaseRenderer):
