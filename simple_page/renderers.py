@@ -59,8 +59,7 @@ def register(model_cls, renderer_cls=None, context=None):
     or::
 
         @renderers.register(FancySection, context=(FancyPage, 'main'))
-        class
-        FancyPageMainRegionFancySectionRenderer(renderers.SectionRenderer):
+        class FancyPageMainRegionFancySectionRenderer(renderers.SectionRenderer):
             ...
 
     This allows you to use different renderers depending on where a section
