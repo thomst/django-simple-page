@@ -80,7 +80,7 @@ def register(model_cls, renderer_cls=None, context=None):
         else:
             REGISTRY[model_cls] = REGISTRY.get(model_cls) or dict()
             REGISTRY[model_cls][context] = renderer_cls
-        return model_cls
+        return renderer_cls
 
     # Usage as function.
     if renderer_cls:
