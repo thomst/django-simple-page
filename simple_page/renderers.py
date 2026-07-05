@@ -16,8 +16,6 @@ Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
 metaclass. They can be equipped with a `Media` classes like django's forms and
 widgets::
 
-.. code-block:: python
-
     from simple_page import renderers
 
     class FancySectionRenderer(renderers.SectionRenderer):

@@ -100,7 +100,7 @@ More informations about page and section models can be found
 Create templates
 ----------------
 
-Create your page template as 'templates/pages/my_page.html'. It might look
+Create your page template as `templates/pages/my_page.html`. It might look
 something like this:
 
 .. code-block:: html
@@ -139,7 +139,7 @@ something like this:
 In this example we use the :func:`menu template tag <.templatetags.simple_page.menu>`
 to build our navigation menu.
 
-Create a template for your text section as 'templates/sections/text_section.html':
+Create a template for your text section as `templates/sections/text_section.html`:
 
 .. code-block:: html
 
@@ -149,7 +149,7 @@ Create a template for your text section as 'templates/sections/text_section.html
     </div>
 
 
-And a template for your image section as 'templates/sections/image_section.html':
+And a template for your image section as `templates/sections/image_section.html`:
 
 .. code-block:: html
 
@@ -171,9 +171,11 @@ image section:
 
 .. code-block:: python
 
-    from simple_page.renderers import SectionRenderer
+    from simple_page import renderers
+    from .models import ImageSection
 
-    class ImageSectionRenderer(SectionRenderer):
+    @renderers.register(ImageSection)
+    class ImageSectionRenderer(renderers.SectionRenderer):
         class Media:
             css = {
                 'all': ('css/image_section.css',)
@@ -181,7 +183,7 @@ image section:
 
 
 Place it within a `renderers` module in your project and make sure it will be
-imported. The best way to do that is in the `ready` method of your `AppConfig`
+imported. The best way to do that is using the `ready` method of your `AppConfig`
 class:
 
 .. code-block:: python
