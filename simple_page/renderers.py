@@ -13,11 +13,13 @@ The only thing a renderer class has to provide is a `render` method returning
 valid HTML.
 
 Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
-metaclass. They can be equipped with a `Media` classes like django's forms and
+metaclass. They can be equipped with a `Media` class like django's forms and
 widgets::
 
     from simple_page import renderers
+    from .models import FancySection
 
+    @renderers.register(FancySection)
     class FancySectionRenderer(renderers.SectionRenderer):
         class Media:
             css = dict(all=['fancy_section.css'])

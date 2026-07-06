@@ -8,6 +8,7 @@ Pages and sections are defined by subclassing the :class:`~.models.Page` and
 
     from simple_page.models import Page, Section
 
+
     class FancyPage(Page):
         REGIONS = [
             ('main', 'Main Region'),
