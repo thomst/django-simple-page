@@ -271,7 +271,7 @@ class PageRenderer(BaseRenderer):
         for region_data in context['regions'].values():
             for section_data in region_data['sections']:
                 media += section_data['renderer'].media
-        return str(media)
+        return media
 
     def get_context(self):
         """
