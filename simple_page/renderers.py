@@ -157,6 +157,24 @@ class BaseRenderer(metaclass=MediaDefiningClass):
         self.request = request
         self.kwargs = kwargs
 
+    def get_template_name(self):
+        """
+        Return template name. Must be implemented by subclasses. Raises
+        :class:`NotImplementedError`.
+        """
+        raise NotImplementedError(
+            f'You have to implement {self.__class__.__name__}.get_template_name()'
+        )
+
+    def get_context(self):
+        """
+        Return rendering context. Must be implemented by subclasses. Raises
+        :class:`NotImplementedError`.
+        """
+        raise NotImplementedError(
+            f'You have to implement {self.__class__.__name__}.get_context()'
+        )
+
     def render(self):
         """
         Return the rendered HTML using the template and context returned by
