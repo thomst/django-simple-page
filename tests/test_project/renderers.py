@@ -9,7 +9,7 @@ class PageWithHeaderRenderer(renderers.PageRenderer):
 
     def get_context(self):
         context = super().get_context()
-        context['header_info'] = self.obj.header_info
+        context['header_info'] = self.page.header_info
         return context
 
 
@@ -17,14 +17,9 @@ class PageWithHeaderRenderer(renderers.PageRenderer):
 class TextSectionRenderer(renderers.SectionRenderer):
     def get_context(self):
         context = super().get_context()
-        context['title'] = self.obj.title or f'{self.obj.text[:8]} ...'
-        context['text'] = self.obj.text
-        return context
-
-
-@renderers.register(TextSection, context='footer')
-class FooterTextSectionRenderer(renderers.SectionRenderer):
-    def get_context(self):
-        context = super().get_context()
-        context['text'] = f'{self.obj.text[:80]} ...'
+        if self.region == 'footer':
+            context['text'] = f'{self.section.text[:80]} ...'
+        else:
+            context['title'] = self.section.title or f'{self.section.text[:8]} ...'
+            context['text'] = self.section.text
         return context

@@ -5,7 +5,7 @@
         <p><b>[{{ regions.header.title }}]</b></p>
         <h2>{{ header_info }}</h2>
         {% for section in regions.header.sections %}
-            {{ section.html }}
+            {% include section %}
         {% endfor %}
     </header>
     {{ block.super }}

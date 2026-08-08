@@ -109,16 +109,23 @@ class SetupRendererMixin:
         cls.section_renderer = dict()
         for i in range(1, 5):
             class BaseRenderer(renderers.SectionRenderer):
+
                 class Media:
                     css = dict(all=[f'text_section_{i}.css'])
                     js = [f'text_section_{i}.js']
-                template_name = cls.template.name
+
                 extra_data = f'extra-data-{i}'
+
+                def get_template_name(self):
+                    return cls.template.name
+
                 def get_context(self):
                     context = super().get_context()
                     context['extra'] = self.extra_data
                     return context
+
             cls.section_renderer[i] = (type(f'TextSection{i}Renderer', (BaseRenderer,), dict()))
+
         renderers.register(TextSection, cls.section_renderer[1], context=(MainPage, 'main'))
         renderers.register(TextSection, cls.section_renderer[2], context='footer')
         renderers.register(TextSection, cls.section_renderer[3], context=MainPage)
@@ -180,7 +187,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
                 self.assertIn(path, media)
             for path in rndr_class.Media.js:
                 self.assertIn(path, media)
-            for path in str(rndr_class(self.section).media).splitlines():
+            for path in str(rndr_class(self.section, self.page, region).media).splitlines():
                 self.assertIn(path, media)
 
         # Check Media class definitions and media property of page renderer.
@@ -209,21 +216,21 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
             self.assertIn(title, html)
 
             # Check extra_data in regions
-            for data in context[region]['sections']:
-                if not data['obj'] is self.section:
+            for section in context[region]['sections']:
+                if not section.section is self.section:
                     continue
                 elif region == 'main':
-                    self.assertIn(self.section_renderer[1].extra_data, data['html'])
-                    self.assertNotIn(self.section_renderer[2].extra_data, data['html'])
-                    self.assertNotIn(self.section_renderer[3].extra_data, data['html'])
+                    self.assertIn(self.section_renderer[1].extra_data, section.render())
+                    self.assertNotIn(self.section_renderer[2].extra_data, section.render())
+                    self.assertNotIn(self.section_renderer[3].extra_data, section.render())
                 elif region == 'footer':
-                    self.assertIn(self.section_renderer[2].extra_data, data['html'])
-                    self.assertNotIn(self.section_renderer[1].extra_data, data['html'])
-                    self.assertNotIn(self.section_renderer[3].extra_data, data['html'])
+                    self.assertIn(self.section_renderer[2].extra_data, section.render())
+                    self.assertNotIn(self.section_renderer[1].extra_data, section.render())
+                    self.assertNotIn(self.section_renderer[3].extra_data, section.render())
                 elif region == 'sidebar':
-                    self.assertIn(self.section_renderer[3].extra_data, data['html'])
-                    self.assertNotIn(self.section_renderer[1].extra_data, data['html'])
-                    self.assertNotIn(self.section_renderer[2].extra_data, data['html'])
+                    self.assertIn(self.section_renderer[3].extra_data, section.render())
+                    self.assertNotIn(self.section_renderer[1].extra_data, section.render())
+                    self.assertNotIn(self.section_renderer[2].extra_data, section.render())
 
 
 class PageTests(AddSectionsMixin, FixTestDataMixin, TestCase):
