@@ -9,9 +9,9 @@ proven triad of `get_template_name`, `get_context` and `render` methods.
 While there are default renderers for pages and sections which do the obvious,
 you can equip your page and section models with customized renderer classes.
 
-Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
-metaclass. They can be equipped with a :class:`~django.forms.Media` class like
-django's forms and widgets::
+Renderer classes using django's `MediaDefiningClass` as metaclass. They can be
+equipped with a :class:`~django.forms.Media` class like django's forms and
+widgets::
 
     from simple_page import renderers
     from .models import FancySection
@@ -115,7 +115,7 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         Return the template path. It will be build based on the section's class
         name:
 
-        "sections/<section_class_name_in_snake_case>.html"
+        `sections/<section_class_name_in_snake_case>.html`
         """
         template_name = camel_to_snake(self.section.__class__.__name__)
         return f'sections/{template_name}.html'
@@ -209,7 +209,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         Return the template path. It will be build based on the page's class
         name:
 
-        "pages/<page_class_name_in_snake_case>.html"
+        `pages/<page_class_name_in_snake_case>.html`
         """
         template_name = camel_to_snake(self.page.__class__.__name__)
         return f'pages/{template_name}.html'
