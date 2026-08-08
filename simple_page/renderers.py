@@ -10,8 +10,8 @@ While there are default renderers for pages and sections which do the obvious,
 you can equip your page and section models with customized renderer classes.
 
 Renderer classes using django's :class:`~django.forms.MediaDefiningClass` as
-metaclass. They can be equipped with a `Media` class like django's forms and
-widgets::
+metaclass. They can be equipped with a :class:`~django.forms.Media` class like
+django's forms and widgets::
 
     from simple_page import renderers
     from .models import FancySection
@@ -22,10 +22,8 @@ widgets::
             css = dict(all=['fancy_section.css'])
             js = ['fancy_section.js']
 
-
-It is the responsibility of the page renderer to merge the media definitions of
-all renderers involved and provide them as a `media` template variable. For more
-details see :meth:`~.PageRenderer.get_media_assets`.
+The merged media assets will be available as a `media` template variable for the
+page. See :meth:`~.PageRenderer.get_media_assets` for details.
 """
 
 from django.template.loader import get_template
