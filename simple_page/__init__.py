@@ -34,12 +34,13 @@ section model.
 Renderers
 ---------
 
-While there are default :mod:`renderers <.renderers>` for pages and sections
-which are probably suitable for most use cases, you are free to completely adapt
-or overwrite them. Each page or section can have its own renderer providing a
-specific rendering logic. And each renderer can have its own Media class
-defining javascript or css files. Those media assets are merged by the page
-renderer and be available as `media` template variable.
+Building HTML from pages and sections is done by :class:`renderers
+<.renderers>`. While a :class:`~.renderers.SectionRenderer` produces a html
+snippet representing the section object, a :class:`~.renderers.PageRenderer`
+provides a full html document - including all its sections. With a renderer
+class you can also define media assets which are specific for a given page or
+section. Renderer classes can be customized in any way - providing specific
+rendering logic for specific page or section models.
 
 Summing-up
 ----------
