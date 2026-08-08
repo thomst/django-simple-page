@@ -34,13 +34,13 @@ section model.
 Renderers
 ---------
 
-Building HTML from pages and sections is done by :class:`renderers
-<.renderers>`. While a :class:`~.renderers.SectionRenderer` produces a html
-snippet representing the section object, a :class:`~.renderers.PageRenderer`
-provides a full html document - including all its sections. With a renderer
-class you can also define media assets which are specific for a given page or
-section. Renderer classes can be customized in any way - providing specific
-rendering logic for specific page or section models.
+Building HTML from pages and sections is done by :mod:`~.renderers`. While a
+:class:`~.renderers.SectionRenderer` produces a html snippet representing the
+section object, a :class:`~.renderers.PageRenderer` provides a full html
+document - including all its sections. With a renderer class you can also define
+media assets which are specific for a given page or section. Renderer classes
+can be customized in any way - providing specific rendering logic for specific
+page or section models.
 
 Summing-up
 ----------
