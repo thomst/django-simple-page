@@ -79,75 +79,83 @@ class SetupRendererMixin:
 
     @classmethod
     def setup_templates(cls):
-        html = b'<h3>{{ extra }}</h3><p>{{ section.text }}</p>'
         test_project_dir = Path(__file__).resolve().parent
+
+        # Page template.
+        html = b'{% extends "pages/main_page.html" %}{% block content %}{{ block.super }}<p>{{ extra }}</p>{% endblock %}'
+        template_dir = test_project_dir / 'templates' / 'pages'
+        template_dir.mkdir(parents=True, exist_ok=True)
+        template_file = tempfile.NamedTemporaryFile(dir=str(template_dir), delete=False)
+        with template_file as cls.page_template:
+            cls.page_template.write(html)
+
+        # Section template.
+        html = b'<h3>{{ extra }}</h3><p>{{ section.text }}</p>'
         template_dir = test_project_dir / 'templates' / 'sections'
         template_dir.mkdir(parents=True, exist_ok=True)
         template_file = tempfile.NamedTemporaryFile(dir=str(template_dir), delete=False)
-        with template_file as cls.template:
-            cls.template.write(html)
+        with template_file as cls.section_template:
+            cls.section_template.write(html)
 
     @classmethod
     def remove_templates(cls):
-        os.remove(cls.template.name)
+        os.remove(cls.page_template.name)
+        os.remove(cls.section_template.name)
 
     @classmethod
     def register_page_renderer(cls):
         class BaseRenderer(renderers.PageRenderer):
+            extra_data = 'extra-page-data'
+
             class Media:
                 css = dict(all=['pages/main_page.css'])
                 js = ['pages/main_page.js']
+
+            def get_template_name(self):
+                return cls.page_template.name
+
             def get_context(self):
                 context = super().get_context()
-                context['extra'] = 'extra-data'
+                context['extra'] = self.extra_data
                 return context
+
         cls.page_renderer = type('MainPageRenderer', (BaseRenderer,), dict())
         renderers.register(MainPage, cls.page_renderer)
 
     @classmethod
     def register_section_renderer(cls):
-        cls.section_renderer = dict()
-        for i in range(1, 5):
-            class BaseRenderer(renderers.SectionRenderer):
+        class BaseRenderer(renderers.SectionRenderer):
+            extra_data = 'extra-section-data'
 
-                class Media:
-                    css = dict(all=[f'text_section_{i}.css'])
-                    js = [f'text_section_{i}.js']
+            class Media:
+                css = dict(all=[f'text_section.css'])
+                js = [f'text_section.js']
 
-                extra_data = f'extra-data-{i}'
+            def get_template_name(self):
+                return cls.section_template.name
 
-                def get_template_name(self):
-                    return cls.template.name
+            def get_region_data(self):
+                return f'{{ self.page }}.{{ self.region }}.{{ self.section }}'
 
-                def get_context(self):
-                    context = super().get_context()
-                    context['extra'] = self.extra_data
-                    return context
+            def get_context(self):
+                context = super().get_context()
+                context['extra'] = self.extra_data
+                context['region_data'] = self.get_region_data()
+                return context
 
-            cls.section_renderer[i] = (type(f'TextSection{i}Renderer', (BaseRenderer,), dict()))
-
-        renderers.register(TextSection, cls.section_renderer[1], context=(MainPage, 'main'))
-        renderers.register(TextSection, cls.section_renderer[2], context='footer')
-        renderers.register(TextSection, cls.section_renderer[3], context=MainPage)
-        renderers.register(TextSection, cls.section_renderer[4])
+        cls.section_renderer = (type('TextSectionRenderer', (BaseRenderer,), dict()))
+        renderers.register(TextSection, cls.section_renderer)
 
 
 class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
 
     def test_page_renderer_registry(self):
         page = MainPage.objects.first()
-        self.assertEqual(self.page_renderer, renderers.get_page_renderer(page))
+        self.assertEqual(self.page_renderer, renderers.get_renderer(page))
 
     def test_section_renderer_register(self):
         section = TextSection.objects.first()
-        main_page = MainPage.objects.first()
-        header_page = PageWithHeader.objects.first()
-
-        self.assertEqual(self.section_renderer[1], renderers.get_section_renderer(section, main_page, 'main'))
-        self.assertEqual(self.section_renderer[2], renderers.get_section_renderer(section, main_page, 'footer'))
-        self.assertEqual(self.section_renderer[2], renderers.get_section_renderer(section, header_page, 'footer'))
-        self.assertEqual(self.section_renderer[3], renderers.get_section_renderer(section, main_page, 'sidebar'))
-        self.assertEqual(self.section_renderer[4], renderers.get_section_renderer(section, header_page, 'sidebar'))
+        self.assertEqual(self.section_renderer, renderers.get_renderer(section))
 
 
 class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, TestCase):
@@ -155,12 +163,14 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
     def setUp(self):
         self.page = MainPage.objects.first()
         self.section = TextSection.objects.first()
-        self.page_renderer_class = renderers.get_page_renderer(self.page)
+        self.page_renderer_class = renderers.get_renderer(self.page)
         self.page_renderer = self.page_renderer_class(self.page)
+        self.section_renderer_class = renderers.get_renderer(self.section)
+        self.section_renderer = self.section_renderer_class(self.section, self.page, 'main')
         return super().setUp()
 
     def test_template_name(self):
-        template_name = self.page_renderer.get_template_name()
+        template_name = renderers.PageRenderer(self.page).get_template_name()
         self.assertEqual(template_name, 'pages/main_page.html')
 
     def test_context_keys(self):
@@ -169,26 +179,22 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
         self.assertIn('extra', context)
         self.assertIn('media', context)
         self.assertIn('regions', context)
-
-        # Check regions.
-        for region, _ in self.page.get_regions():
-            self.assertIn(region, context)
-            self.assertIn('sections', context[region])
-            self.assertIn(context[region], context['regions'].values())
+        self.assertIn('sections', context)
+        for region in self.page.get_regions():
+            self.assertIn(region[0], context)
+            self.assertIn(region[0], context['regions'])
+            self.assertIn('sections', context[region[0]])
 
     def test_media_context(self):
-        context = self.page_renderer.get_context()
-        media = str(context['media'])
+        media = str(self.page_renderer.get_context()['media'])
 
-        # Check Media class definitions and media property of section renderers.
-        for region in self.page.get_regions():
-            rndr_class = renderers.get_section_renderer(self.section, self.page, region)
-            for path in rndr_class.Media.css['all']:
-                self.assertIn(path, media)
-            for path in rndr_class.Media.js:
-                self.assertIn(path, media)
-            for path in str(rndr_class(self.section, self.page, region).media).splitlines():
-                self.assertIn(path, media)
+        # Check Media class definitions and media property of section renderer.
+        for path in self.section_renderer_class.Media.css['all']:
+            self.assertIn(path, media)
+        for path in self.section_renderer_class.Media.js:
+            self.assertIn(path, media)
+        for path in str(self.section_renderer.media).splitlines():
+            self.assertIn(path, media)
 
         # Check Media class definitions and media property of page renderer.
         for path in self.page_renderer_class.Media.css['all']:
@@ -202,12 +208,9 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
         html = self.page_renderer.render()
         context = self.page_renderer.get_context()
 
-        # Check section-renderer's extra_data.
-        for i, rndr in self.section_renderer.items():
-            if i == 4:
-                self.assertNotIn(rndr.extra_data, html)
-            else:
-                self.assertIn(rndr.extra_data, html)
+        # Check secion-renderers' extra_data.
+        self.assertIn(self.page_renderer.extra_data, html)
+        self.assertIn(self.section_renderer.extra_data, html)
 
         # Check regions.
         for region, title in self.page.get_regions():
@@ -215,22 +218,12 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
             # Check regions title rendering.
             self.assertIn(title, html)
 
-            # Check extra_data in regions
-            for section in context[region]['sections']:
-                if not section.section is self.section:
-                    continue
-                elif region == 'main':
-                    self.assertIn(self.section_renderer[1].extra_data, section.render())
-                    self.assertNotIn(self.section_renderer[2].extra_data, section.render())
-                    self.assertNotIn(self.section_renderer[3].extra_data, section.render())
-                elif region == 'footer':
-                    self.assertIn(self.section_renderer[2].extra_data, section.render())
-                    self.assertNotIn(self.section_renderer[1].extra_data, section.render())
-                    self.assertNotIn(self.section_renderer[3].extra_data, section.render())
-                elif region == 'sidebar':
-                    self.assertIn(self.section_renderer[3].extra_data, section.render())
-                    self.assertNotIn(self.section_renderer[1].extra_data, section.render())
-                    self.assertNotIn(self.section_renderer[2].extra_data, section.render())
+            # Check region specific data
+            sections = [s for s in context[region]['sections'] if s.section is self.section]
+            for section in sections:
+                region_data = section.get_region_data()
+                print(region_data)
+                self.assertIn(region_data, html)
 
 
 class PageTests(AddSectionsMixin, FixTestDataMixin, TestCase):
