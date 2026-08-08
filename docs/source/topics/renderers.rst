@@ -14,9 +14,7 @@ Registry
 
 .. autofunction:: simple_page.renderers.register
 
-.. autofunction:: simple_page.renderers.get_page_renderer
-
-.. autofunction:: simple_page.renderers.get_section_renderer
+.. autofunction:: simple_page.renderers.get_renderer
 
 
 Renderer Classes
@@ -24,11 +22,9 @@ Renderer Classes
 
 .. autoclass:: simple_page.renderers.SectionRenderer
    :members:
-   :inherited-members:
    :class-doc-from: both
 
 .. autoclass:: simple_page.renderers.PageRenderer
    :members:
-   :inherited-members:
    :class-doc-from: both
 
