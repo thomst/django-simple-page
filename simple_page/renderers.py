@@ -35,98 +35,45 @@ from .models import Page
 
 REGISTRY = dict()
 
-def register(model_cls, renderer_cls=None, context=None):
+def register(model_cls, renderer_cls=None):
     """
-    Register a renderer class for a page or section model. This function can also be
-    used as a decorator for your renderer class::
+    Register a renderer class for a page or section model. This function can
+    also be used as a decorator::
 
         @renderers.register(FancyPage)
         class FancyPageRenderer(renderers.PageRenderer):
             ...
 
-    :class:`Section renderer <.SectionRenderer>` can be applied context
-    specific. A context can be a page type, a region name or a tuple of page
-    type and region name::
-
-        @renderers.register(FancySection, context='main')
-        class MainRegionFancySectionRenderer(renderers.SectionRenderer):
-            ...
-
-    or::
-
-        @renderers.register(FancySection, context=(FancyPage, 'main'))
-        class FancyPageMainRegionFancySectionRenderer(renderers.SectionRenderer):
-            ...
-
-    This allows you to use different renderers depending on where a section
-    appears. See :func:`~.get_section_renderer` for more details about how a
-    renderer will be choosen.
-
     :param model_cls: model to be rendered
     :type model_cls: :class:`~.models.Page` or :class:`~.models.Section`
     :param renderer_cls: renderer class
     :type renderer_cls: :class:`~.PageRenderer` or :class:`~.SectionRenderer`
-    :param context: context where a section renderer should be applied
-    :type context: :class:`~.models.Page` or str or tuple of both, optional
     """
     def _register(renderer_cls):
-        if issubclass(model_cls, Page):
-            REGISTRY[model_cls] = renderer_cls
-        else:
-            REGISTRY[model_cls] = REGISTRY.get(model_cls) or dict()
-            REGISTRY[model_cls][context] = renderer_cls
+        REGISTRY[model_cls] = renderer_cls
         return renderer_cls
 
-    # Usage as function.
+    # Called as a function.
     if renderer_cls:
         _register(renderer_cls)
 
-    # Usage as decorator.
+    # Used as a decorator.
     else:
         return _register
 
 
-def get_page_renderer(page):
+def get_renderer(obj):
     """
-    Return the registered renderer for the page or :class:`~.PageRenderer`.
+    Return the registered renderer for a page or section. Fall back to
+    the default renderers: :class:`~.PageRenderer` or :class:`~.SectionRenderer`.
 
-    :param page: page instance to be rendered
-    :type page: :class:`~.models.Page`
+    :param obj: page or section instance to be rendered
+    :type obj: :class:`~.models.Page` or :class:`~.models.Section`
     :return: renderer class
-    :rtype: :class:`~.PageRenderer`
+    :rtype: :class:`~.PageRenderer` or :class:`~.SectionRenderer`
     """
-    return REGISTRY.get(type(page), PageRenderer)
-
-
-def get_section_renderer(section, page=None, region=None):
-    """
-    Return a renderer instance for the section.
-
-    We look for a registered renderer in this order:
-
-    * page-type and region specific
-    * region specific
-    * page-type specific
-    * neither page-type nor region specific
-
-    The first one found will be returned. Otherwise the
-    :class:`~.SectionRenderer` is used as fallback.
-
-    :param obj: section instance
-    :type obj: :class:`~.models.Section`
-    :param page: page the section will be rendered for
-    :type page: :class:`~.models.Page`
-    :param str region: region the section  will be rendered in
-    :return: renderer class
-    :rtype: :class:`~.SectionRenderer`
-    """
-    if type(section) in REGISTRY:
-        # One of these keys must have been used to register a renderer class.
-        for key in [(type(page), region), region, type(page), None]:
-            if key in REGISTRY[type(section)]:
-                return REGISTRY[type(section)][key]
-    else:
-        return SectionRenderer
+    default_renderer = PageRenderer if isinstance(obj, Page) else SectionRenderer
+    return REGISTRY.get(type(obj), default_renderer)
 
 
 class SectionRenderer(metaclass=MediaDefiningClass):
@@ -208,7 +155,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
 
         def page_view(request, slug, **kwargs):
             page = get_object_or_404(Page, slug=slug).resolve_obj()
-            renderer_cls = get_page_renderer(page)
+            renderer_cls = get_renderer(page)
             return HttpResponse(renderer_cls(page, request).render(**kwargs))
 
     You are free to pass the request to the renderer. If you do your template
@@ -238,7 +185,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         """
         region_data = {'title': title, 'name': region, 'sections': []}
         for section in getattr(self.page, region):
-            renderer_cls = get_section_renderer(section, self.page, region)
+            renderer_cls = get_renderer(section)
             renderer = renderer_cls(section, self.page, region, self.request)
             region_data['sections'].append(renderer)
         return region_data
