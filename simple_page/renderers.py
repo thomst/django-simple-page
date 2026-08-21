@@ -121,16 +121,17 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         template_name = camel_to_snake(self.section.__class__.__name__)
         return f'sections/{template_name}.html'
 
-    def get_context_data(self):
+    def get_context_data(self, **context):
         """
         Build and return rendering context:
 
         - `section`: section object
 
-        :return: rendering context
-        :rtype: dict
+        :param dict context: additional keyword arguments used as context data
+        :return dict: rendering context
         """
-        return dict(section=self.section)
+        context['section'] = self.section
+        return context
 
     def render(self, context=None):
         """
@@ -217,7 +218,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         template_name = camel_to_snake(self.page.__class__.__name__)
         return f'pages/{template_name}.html'
 
-    def get_context_data(self):
+    def get_context_data(self, **context):
         """
         Build the rendering context variables:
 
@@ -231,10 +232,10 @@ class PageRenderer(metaclass=MediaDefiningClass):
         name as an own context variable. In your template these variables are
         equivalent: `{{ regions.main }}` and `{{ main }}`.
 
+        :param dict context: additional keyword arguments used as context data
         :return dict: rendering context
         """
         # Add regions, sections and media to the context.
-        context = dict()
         context['page'] = self.page
         context['regions'] = dict()
         context['sections'] = list()
