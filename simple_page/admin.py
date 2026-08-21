@@ -21,6 +21,7 @@ from django.forms import HiddenInput
 from django.utils.functional import cached_property
 from django.utils.html import mark_safe
 from django.urls import reverse
+from django.shortcuts import redirect
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
 from mptt.admin import DraggableMPTTAdmin
@@ -150,6 +151,20 @@ class ChoosePageTypeMixin(GetPageModelMixin):
                     url = reverse(f"admin:{ct.app_label}_{ct.model}_add")
                 extra_context["page_types"].append((url, name))
         return super().add_view(request, form_url, extra_context)
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        obj = Page.objects.get(id=object_id)
+        ct = obj.page_type
+
+        # If we have a proxy page model we just use this change view.
+        if ct.model_class()._meta.proxy:
+            return super().change_view(request, object_id, form_url, extra_context)
+
+        # Otherwise we do a redirect to the page's change view.
+        else:
+            kwargs = dict(object_id=obj.resolve_obj().id)
+            url = reverse(f"admin:{ct.app_label}_{ct.model}_change", kwargs=kwargs)
+            return redirect(url, permanent=True)
 
 
 class SetPageTypeMixin(GetPageModelMixin):
