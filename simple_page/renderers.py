@@ -139,14 +139,16 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         :meth:`~.get_template_name` and :meth:`~.get_context_data` methods.
 
         :param context: additional context to be passed to the template
-        :type context: :class:`~django.template.Context`, optional
+        :type context: :class:`~django.template.Context` or dict, optional
         :return: rendered HTML
         :rtype: str
         """
-        template = get_template(self.get_template_name())
-        context = context or Context()
+        # If coming from the include template tag we get a `Context` object.
+        context = context.flatten() if isinstance(context, Context) else context
+        context = context or dict()
         context.update(self.get_context_data())
-        return template.render(context.flatten(), request=self.request)
+        template = get_template(self.get_template_name())
+        return template.render(context, request=self.request)
 
 
 class PageRenderer(metaclass=MediaDefiningClass):
@@ -247,14 +249,17 @@ class PageRenderer(metaclass=MediaDefiningClass):
 
         return context
 
-    def render(self, **context):
+    def render(self, context=None):
         """
         Return the rendered HTML using the template and context returned by
         :meth:`~.get_template_name` and :meth:`~.get_context_data` methods.
 
-        :param dict context: additional context to be passed to the template
+        :param context: additional context to be passed to the template
+        :type context: :class:`~django.template.Context` or dict, optional
         :return str: rendered HTML
         """
-        template = get_template(self.get_template_name())
+        context = context.flatten() if isinstance(context, Context) else context
+        context = context or dict()
         context.update(self.get_context_data())
+        template = get_template(self.get_template_name())
         return template.render(context, request=self.request)
