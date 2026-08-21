@@ -113,8 +113,8 @@ class SetupRendererMixin:
             def get_template_name(self):
                 return cls.page_template.name
 
-            def get_context(self):
-                context = super().get_context()
+            def get_context_data(self):
+                context = super().get_context_data()
                 context['extra'] = self.extra_data
                 return context
 
@@ -136,8 +136,8 @@ class SetupRendererMixin:
             def get_region_data(self):
                 return f'{{ self.page }}.{{ self.region }}.{{ self.section }}'
 
-            def get_context(self):
-                context = super().get_context()
+            def get_context_data(self):
+                context = super().get_context_data()
                 context['extra'] = self.extra_data
                 context['region_data'] = self.get_region_data()
                 return context
@@ -173,7 +173,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
         self.assertEqual(template_name, 'pages/main_page.html')
 
     def test_context_keys(self):
-        context = self.page_renderer.get_context()
+        context = self.page_renderer.get_context_data()
         self.assertIn('page', context)
         self.assertIn('extra', context)
         self.assertIn('media', context)
@@ -185,7 +185,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
             self.assertIn('sections', context[region[0]])
 
     def test_media_context(self):
-        media = str(self.page_renderer.get_context()['media'])
+        media = str(self.page_renderer.get_context_data()['media'])
 
         # Check Media class definitions and media property of section renderer.
         for path in self.section_renderer_class.Media.css['all']:
@@ -205,7 +205,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
 
     def test_html(self):
         html = self.page_renderer.render()
-        context = self.page_renderer.get_context()
+        context = self.page_renderer.get_context_data()
 
         # Check secion-renderers' extra_data.
         self.assertIn(self.page_renderer.extra_data, html)

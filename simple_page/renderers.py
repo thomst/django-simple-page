@@ -4,7 +4,7 @@ section renderer produces a html snippet representing the section object, a page
 renderer provides a full html document - including all its sections.
 
 Nevertheless, both renderer classes are based on the same concept, using the
-proven triad of `get_template_name`, `get_context` and `render` methods.
+proven triad of `get_template_name`, `get_context_data` and `render` methods.
 
 While there are default renderers for pages and sections which do the obvious,
 you can equip your page and section models with customized renderer classes.
@@ -120,7 +120,7 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         template_name = camel_to_snake(self.section.__class__.__name__)
         return f'sections/{template_name}.html'
 
-    def get_context(self):
+    def get_context_data(self):
         """
         Build and return rendering context:
 
@@ -134,7 +134,7 @@ class SectionRenderer(metaclass=MediaDefiningClass):
     def render(self, context=None):
         """
         Return the rendered HTML using the template and context returned by
-        :meth:`~.get_template_name` and :meth:`~.get_context` methods.
+        :meth:`~.get_template_name` and :meth:`~.get_context_data` methods.
 
         :param context: additional context to be passed to the template
         :type context: :class:`~django.template.Context`, optional
@@ -143,7 +143,7 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         """
         template = get_template(self.get_template_name())
         context = context or Context()
-        context.update(self.get_context())
+        context.update(self.get_context_data())
         return template.render(context.flatten(), request=self.request)
 
 
@@ -214,7 +214,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         template_name = camel_to_snake(self.page.__class__.__name__)
         return f'pages/{template_name}.html'
 
-    def get_context(self):
+    def get_context_data(self):
         """
         Build the rendering context variables:
 
@@ -246,11 +246,11 @@ class PageRenderer(metaclass=MediaDefiningClass):
     def render(self, **context):
         """
         Return the rendered HTML using the template and context returned by
-        :meth:`~.get_template_name` and :meth:`~.get_context` methods.
+        :meth:`~.get_template_name` and :meth:`~.get_context_data` methods.
 
         :param dict context: additional context to be passed to the template
         :return str: rendered HTML
         """
         template = get_template(self.get_template_name())
-        context.update(self.get_context())
+        context.update(self.get_context_data())
         return template.render(context, request=self.request)

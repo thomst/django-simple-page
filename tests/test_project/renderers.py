@@ -7,16 +7,16 @@ class PageWithHeaderRenderer(renderers.PageRenderer):
     class Media:
         css = dict(all=['pages/header.css'])
 
-    def get_context(self):
-        context = super().get_context()
+    def get_context_data(self):
+        context = super().get_context_data()
         context['header_info'] = self.page.header_info
         return context
 
 
 @renderers.register(TextSection)
 class TextSectionRenderer(renderers.SectionRenderer):
-    def get_context(self):
-        context = super().get_context()
+    def get_context_data(self):
+        context = super().get_context_data()
         if self.region == 'footer':
             context['text'] = f'{self.section.text[:80]} ...'
         else:
