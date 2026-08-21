@@ -223,7 +223,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         Build the rendering context variables:
 
         - `page`: page object
-        - `sections`: list of all section renderers
+        - `sections`: set of all section renderers
         - `regions`: mapping of region names to their data build by
           :meth:`~.get_region_data`
         - `media`: media assets build by :meth:`~.get_media_assets`
@@ -238,11 +238,11 @@ class PageRenderer(metaclass=MediaDefiningClass):
         # Add regions, sections and media to the context.
         context['page'] = self.page
         context['regions'] = dict()
-        context['sections'] = list()
+        context['sections'] = set()
         for region, title in self.page.get_regions():
             context[region] = self.get_region_data(region, title)
             context['regions'][region] = context[region]
-            context['sections'].extend(context[region]['sections'])
+            context['sections'] |= set(context[region]['sections'])
         context['media'] = self.get_media_assets(context['sections'])
 
         return context
