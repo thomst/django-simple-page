@@ -113,8 +113,8 @@ class SetupRendererMixin:
             def get_template_name(self):
                 return cls.page_template.name
 
-            def get_context_data(self):
-                context = super().get_context_data()
+            def get_context_data(self, **context):
+                context = super().get_context_data(**context)
                 context['extra'] = self.extra_data
                 return context
 
@@ -136,8 +136,8 @@ class SetupRendererMixin:
             def get_region_data(self):
                 return f'{{ self.page }}.{{ self.region }}.{{ self.section }}'
 
-            def get_context_data(self):
-                context = super().get_context_data()
+            def get_context_data(self, **context):
+                context = super().get_context_data(**context)
                 context['extra'] = self.extra_data
                 context['region_data'] = self.get_region_data()
                 return context
