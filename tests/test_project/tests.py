@@ -17,7 +17,7 @@ from simple_page import __version__
 from .models import TextSection, MainPage, PageWithHeader
 
 
-class FixTestDataMixin:
+class TestDataMixin:
     fixtures = ['testdata.json']
 
     @classmethod
@@ -52,7 +52,6 @@ class AddSectionsMixin:
 
 
 class SetupRendererMixin:
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -147,7 +146,7 @@ class SetupRendererMixin:
         renderers.register(TextSection, cls.section_renderer)
 
 
-class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
+class RendererRegistryTests(SetupRendererMixin, TestDataMixin, TestCase):
 
     def test_page_renderer_registry(self):
         page = MainPage.objects.first()
@@ -158,7 +157,7 @@ class RendererRegistryTests(SetupRendererMixin, FixTestDataMixin, TestCase):
         self.assertEqual(self.section_renderer, renderers.get_renderer(section))
 
 
-class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, TestCase):
+class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, TestCase):
 
     def setUp(self):
         self.page = MainPage.objects.first()
@@ -226,7 +225,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, FixTestDataMixin, 
                 self.assertIn(region_data, html)
 
 
-class PageTests(AddSectionsMixin, FixTestDataMixin, TestCase):
+class PageTests(AddSectionsMixin, TestDataMixin, TestCase):
 
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
@@ -246,7 +245,7 @@ class PageTests(AddSectionsMixin, FixTestDataMixin, TestCase):
             page.non_existing_region
 
 
-class UpdateIndexesTests(FixTestDataMixin, TestCase):
+class UpdateIndexesTests(TestDataMixin, TestCase):
 
     def test_update_indexes_on_deleting(self):
         page = MainPage.objects.first()
@@ -277,7 +276,7 @@ class UpdateIndexesTests(FixTestDataMixin, TestCase):
         self.assertEqual(new_page_section.index, last_index + 1)
 
 
-class AdminBackendTests(FixTestDataMixin, TestCase):
+class AdminBackendTests(TestDataMixin, TestCase):
 
     def setUp(self):
         self.client.force_login(User.objects.first())
@@ -342,7 +341,7 @@ class AdminBackendTests(FixTestDataMixin, TestCase):
         self.assertInHTML(input, resp.content.decode('utf8'))
 
 
-class PageViewTests(FixTestDataMixin, TestCase):
+class PageViewTests(TestDataMixin, TestCase):
 
     def setUp(self):
         self.client.force_login(User.objects.first())
@@ -360,7 +359,7 @@ class PageViewTests(FixTestDataMixin, TestCase):
         self.assertEqual(resp.status_code, 404)
 
 
-class MenuTemplateTagTests(FixTestDataMixin, TestCase):
+class MenuTemplateTagTests(TestDataMixin, TestCase):
     @classmethod
     def setUpClass(cls):
         cls.href_regex = r'<a[^>]+href="{}"[^>]*>\s*{}\s*</a>'
