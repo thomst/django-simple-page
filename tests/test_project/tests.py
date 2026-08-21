@@ -413,3 +413,26 @@ class MenuTemplateTagTests(TestDataMixin, TestCase):
                     self.assertRegex(rendered, regex)
                 else:
                     self.assertNotRegex(rendered, regex)
+
+
+class PageChangeViewTests(TestDataMixin, TestCase):
+
+    def setUp(self):
+        self.client.force_login(User.objects.first())
+
+    def test_proxy_page_change_view(self):
+        obj = MainPage.objects.first()
+        url = reverse('admin:simple_page_page_change', args=(obj.id,))
+        resp = self.client.get(url, follow=True)
+        self.assertFalse(resp.redirect_chain)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_redirect_concrete_page_change_view(self):
+        obj = PageWithHeader.objects.first()
+        url = reverse('admin:simple_page_page_change', args=(obj.page_ptr.id,))
+        redirect_url = reverse('admin:test_project_pagewithheader_change', args=(obj.id,))
+        resp = self.client.get(url, follow=True)
+        self.assertTrue(resp.redirect_chain)
+        self.assertEqual(resp.redirect_chain[0][0], redirect_url)
+        self.assertEqual(resp.redirect_chain[0][1], 301)
+        self.assertEqual(resp.status_code, 200)
