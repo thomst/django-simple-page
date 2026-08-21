@@ -64,7 +64,8 @@ class GetPageModelMixin:
         """
         exclude_apps = ["admin", "auth", "contenttypes", "sessions", "simple_page"]
         cts = ContentType.objects.exclude(app_label__in=exclude_apps)
-        return [ct for ct in cts if ct.model_class() and issubclass(ct.model_class(), Page)]
+        is_page_type = lambda m: m and issubclass(m, Page) and (m._meta.proxy or admin.site.is_registered(m))
+        return [ct for ct in cts if is_page_type(ct.model_class())]
 
     def get_page_model(self, request, obj=None):
         """
