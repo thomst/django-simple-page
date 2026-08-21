@@ -102,13 +102,14 @@ class SectionRenderer(metaclass=MediaDefiningClass):
     :param str region: region the section  will be rendered in
     :param request: HTTP request, optional
     :type request: :class:`~django.http.HttpRequest`, optional
+    :param dict params: additional keyword arguments
     """
-    def __init__(self, section, page, region, request=None):
-        self.obj = section
+    def __init__(self, section, page, region, request=None, **params):
         self.section = section
         self.page = page
         self.region = region
         self.request = request
+        self.params = params
 
     def get_template_name(self):
         """
@@ -165,10 +166,12 @@ class PageRenderer(metaclass=MediaDefiningClass):
     :type page: :class:`~.models.Page`
     :param request: HTTP request, optional
     :type request: :class:`~django.http.HttpRequest`, optional
+    :param dict params: additional keyword arguments
     """
-    def __init__(self, page, request=None):
+    def __init__(self, page, request=None, **params):
         self.page = page
         self.request = request
+        self.params = params
 
     def get_region_data(self, region, title):
         """
@@ -186,7 +189,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         region_data = {'title': title, 'name': region, 'sections': []}
         for section in getattr(self.page, region):
             renderer_cls = get_renderer(section)
-            renderer = renderer_cls(section, self.page, region, self.request)
+            renderer = renderer_cls(section, self.page, region, self.request, **self.params)
             region_data['sections'].append(renderer)
         return region_data
 
