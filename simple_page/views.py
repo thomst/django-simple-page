@@ -19,4 +19,4 @@ def page_view(request, slug, **kwargs):
     """
     page = get_object_or_404(Page, slug=slug).resolve_obj()
     renderer_cls = get_renderer(page)
-    return HttpResponse(renderer_cls(page, request).render(**kwargs))
+    return HttpResponse(renderer_cls(page, request, **kwargs).render())
