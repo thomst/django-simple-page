@@ -138,19 +138,30 @@ class ChoosePageTypeMixin(GetPageModelMixin):
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def add_view(self, request, form_url="", extra_context=None):
-        # Add page types to the context to render a list of add links for each
-        # page type. Using their content type id in the query string.
-        if "page_type" not in request.GET:
-            extra_context = extra_context or {}
-            extra_context["page_types"] = []
-            for ct in self.page_types:
-                name = ct.model_class()._meta.verbose_name
-                if ct.model_class()._meta.proxy:
-                    url = f"?page_type={ct.id}"
-                else:
-                    url = reverse(f"admin:{ct.app_label}_{ct.model}_add")
-                extra_context["page_types"].append((url, name))
-        return super().add_view(request, form_url, extra_context)
+        # If page_type is known we just go with it.
+        if "page_type" in request.GET:
+            return super().add_view(request, form_url, extra_context)
+
+        # Otherwise resolve urls for the page specific add views.
+        pages = list()
+        for ct in self.page_types:
+            model_name = ct.model_class()._meta.verbose_name
+            if ct.model_class()._meta.proxy:
+                url = reverse("admin:simple_page_page_add", query=dict(page_type=ct.id))
+            else:
+                url = reverse(f"admin:{ct.app_label}_{ct.model}_add")
+            pages.append((url, model_name))
+
+        # If we only got one page type we do a redirect.
+        if len(pages) == 1:
+            return redirect(pages[0][0], permanent=True)
+
+        # Otherwise we pass the urls to the add view as extra parameter. The
+        # template will recognize them and render a list of links.
+        else:
+            extra_context = extra_context or dict()
+            extra_context["page_types"] = pages
+            return super().add_view(request, form_url, extra_context)
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         obj = Page.objects.get(id=object_id)
