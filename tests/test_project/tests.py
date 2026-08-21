@@ -311,7 +311,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
         add_header_page_url = reverse('admin:test_project_pagewithheader_add')
 
         for url in [change_page_url, change_header_page_url, add_header_page_url]:
-            resp = self.client.get(url)
+            resp = self.client.get(url, follow=True)
             self.assertEqual(resp.status_code, 200)
             for _, title in PageWithHeader.get_regions():
                 regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
