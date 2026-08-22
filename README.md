@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/thomst/django-simple-page/actions/workflows/tests.yml/badge.svg)](https://github.com/thomst/django-simple-page/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/thomst/django-simple-page/badge.svg?branch=main)](https://coveralls.io/github/thomst/django-simple-page?branch=main)
-[<img src="https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange">](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0-orange)
+[<img src="https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0%20%7C%206.1-orange">](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0%20%7C%205.1%20%7C%205.2%20%7C%206.0%20%7C%206.1-orange)
 
 Django-simple-page is a cms buildkit for your website. The strength of this
 project is its simplicity - using comprehensible yet powerful concepts. You get
