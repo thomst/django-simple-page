@@ -147,7 +147,8 @@ class ChoosePageTypeMixin(GetPageModelMixin):
         for ct in self.page_types:
             model_name = ct.model_class()._meta.verbose_name
             if ct.model_class()._meta.proxy:
-                url = reverse("admin:simple_page_page_add", query=dict(page_type=ct.id))
+                # We do not use the query keyword to support django older than 5.2.
+                url = f'{reverse("admin:simple_page_page_add")}?page_type={ct.id}'
             else:
                 url = reverse(f"admin:{ct.app_label}_{ct.model}_add")
             pages.append((url, model_name))
