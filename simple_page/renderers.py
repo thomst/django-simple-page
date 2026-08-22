@@ -114,9 +114,11 @@ class SectionRenderer(metaclass=MediaDefiningClass):
     def get_template_name(self):
         """
         Return the template path. It will be build based on the section's class
-        name:
+        name::
 
-        `sections/<section_class_name_in_snake_case>.html`
+            'sections/<section_class_name_in_snake_case>.html'
+
+        :return str: path to template file
         """
         template_name = camel_to_snake(self.section.__class__.__name__)
         return f'sections/{template_name}.html'
@@ -213,9 +215,11 @@ class PageRenderer(metaclass=MediaDefiningClass):
     def get_template_name(self):
         """
         Return the template path. It will be build based on the page's class
-        name:
+        name::
 
-        `pages/<page_class_name_in_snake_case>.html`
+            'pages/<page_class_name_in_snake_case>.html'
+
+        :return str: path to template file
         """
         template_name = camel_to_snake(self.page.__class__.__name__)
         return f'pages/{template_name}.html'
