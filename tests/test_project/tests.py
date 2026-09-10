@@ -57,8 +57,9 @@ class SetupRendererMixin:
         super().setUpClass()
         cls.reset_registry()
         cls.setup_templates()
-        cls.register_page_renderer()
-        cls.register_section_renderer()
+        cls.setup_page_renderer()
+        cls.setup_section_renderer()
+        cls.register_renderer()
 
     @classmethod
     def tearDownClass(cls):
@@ -102,7 +103,7 @@ class SetupRendererMixin:
         os.remove(cls.section_template.name)
 
     @classmethod
-    def register_page_renderer(cls):
+    def setup_page_renderer(cls):
         class BaseRenderer(renderers.PageRenderer):
             extra_data = 'extra-page-data'
 
@@ -118,13 +119,12 @@ class SetupRendererMixin:
                 context['extra'] = self.extra_data
                 return context
 
-        cls.page_renderer = type('MainPageRenderer', (BaseRenderer,), dict())
-        renderers.register(MainPage, cls.page_renderer)
+        cls.page_renderer_class = type('MainPageRenderer', (BaseRenderer,), dict())
 
     @classmethod
-    def register_section_renderer(cls):
-        class BaseRenderer(renderers.SectionRenderer):
-            extra_data = 'extra-section-data'
+    def setup_section_renderer(cls):
+        class SectionRendererOne(renderers.SectionRenderer):
+            extra_data = 'extra-section-data-one'
 
             class Media:
                 css = dict(all=[f'text_section.css'])
@@ -142,19 +142,33 @@ class SetupRendererMixin:
                 context['region_data'] = self.get_region_data()
                 return context
 
-        cls.section_renderer = (type('TextSectionRenderer', (BaseRenderer,), dict()))
-        renderers.register(TextSection, cls.section_renderer)
+        class SectionRendererTwo(SectionRendererOne):
+            extra_data = 'extra-section-data-two'
+
+        cls.section_renderer_class_one = SectionRendererOne
+        cls.section_renderer_class_two = SectionRendererTwo
+
+    @classmethod
+    def register_renderer(cls):
+        renderers.register(MainPage, cls.page_renderer_class)
+        renderers.register(TextSection, cls.section_renderer_class_one)
+        renderers.register(TextSection, cls.section_renderer_class_two, page_type=PageWithHeader)
 
 
 class RendererRegistryTests(SetupRendererMixin, TestDataMixin, TestCase):
 
     def test_page_renderer_registry(self):
         page = MainPage.objects.first()
-        self.assertEqual(self.page_renderer, renderers.get_renderer(page))
+        self.assertEqual(self.page_renderer_class, renderers.get_renderer(page))
 
     def test_section_renderer_register(self):
         section = TextSection.objects.first()
-        self.assertEqual(self.section_renderer, renderers.get_renderer(section))
+        main_page = MainPage.objects.first()
+        page_with_header = PageWithHeader.objects.first()
+        renderer_class_one = renderers.get_renderer(section, main_page)
+        renderer_class_two = renderers.get_renderer(section, page_with_header)
+        self.assertEqual(self.section_renderer_class_one, renderer_class_one)
+        self.assertEqual(self.section_renderer_class_two, renderer_class_two)
 
 
 class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, TestCase):
@@ -162,10 +176,8 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
     def setUp(self):
         self.page = MainPage.objects.first()
         self.section = TextSection.objects.first()
-        self.page_renderer_class = renderers.get_renderer(self.page)
         self.page_renderer = self.page_renderer_class(self.page)
-        self.section_renderer_class = renderers.get_renderer(self.section)
-        self.section_renderer = self.section_renderer_class(self.section, self.page, 'main')
+        self.section_renderer = self.section_renderer_class_one(self.section, self.page, 'main')
         return super().setUp()
 
     def test_template_name(self):
@@ -188,9 +200,9 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
         media = str(self.page_renderer.get_context_data()['media'])
 
         # Check Media class definitions and media property of section renderer.
-        for path in self.section_renderer_class.Media.css['all']:
+        for path in self.section_renderer_class_one.Media.css['all']:
             self.assertIn(path, media)
-        for path in self.section_renderer_class.Media.js:
+        for path in self.section_renderer_class_one.Media.js:
             self.assertIn(path, media)
         for path in str(self.section_renderer.media).splitlines():
             self.assertIn(path, media)
@@ -209,7 +221,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
 
         # Check secion-renderers' extra_data.
         self.assertIn(self.page_renderer.extra_data, html)
-        self.assertIn(self.section_renderer.extra_data, html)
+        self.assertIn(self.section_renderer_class_one.extra_data, html)
 
         # Check regions.
         for region, title in self.page.get_regions():
@@ -221,7 +233,6 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
             sections = [s for s in context[region]['sections'] if s.section is self.section]
             for section in sections:
                 region_data = section.get_region_data()
-                print(region_data)
                 self.assertIn(region_data, html)
 
 
@@ -413,6 +424,35 @@ class MenuTemplateTagTests(TestDataMixin, TestCase):
                     self.assertRegex(rendered, regex)
                 else:
                     self.assertNotRegex(rendered, regex)
+
+
+# FIXME: This test case does only work when isolated. Since PageAdmin.page_types
+# is a cached_property.
+# class SinglePageAddViewTests(TestDataMixin, TestCase):
+#     @classmethod
+#     def setUpClass(cls):
+#         super().setUpClass()
+#         # Unregister the concrete page model.
+#         admin.site.unregister(PageWithHeader)
+
+#     @classmethod
+#     def tearDownClass(cls):
+#         super().tearDownClass()
+#         # Reregister the concrete page model.
+#         admin.site.register(PageWithHeader, PageWithHeaderAdmin)
+
+#     def setUp(self):
+#         self.client.force_login(User.objects.first())
+
+#     def test_redirect_on_page_adding(self):
+#         url = reverse('admin:simple_page_page_add')
+#         ct = ContentType.objects.get(model='mainpage')
+#         redirect_url = reverse('admin:simple_page_page_add', query=dict(page_type=ct.id))
+#         resp = self.client.get(url, follow=True)
+#         self.assertTrue(resp.redirect_chain)
+#         self.assertEqual(resp.redirect_chain[0][0], redirect_url)
+#         self.assertEqual(resp.redirect_chain[0][1], 301)
+#         self.assertEqual(resp.status_code, 200)
 
 
 class PageChangeViewTests(TestDataMixin, TestCase):

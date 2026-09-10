@@ -1,4 +1,7 @@
 """
+Building HTML from pages and sections
+-------------------------------------
+
 To build the HTML for a page or section object a renderer class is used. While a
 section renderer produces a html snippet representing the section object, a page
 renderer provides a full html document - including all its sections.
@@ -8,6 +11,9 @@ proven triad of `get_template_name`, `get_context_data` and `render` methods.
 
 While there are default renderers for pages and sections which do the obvious,
 you can equip your page and section models with customized renderer classes.
+
+Renderer as `MediaDefiningClass`
+--------------------------------
 
 Renderer classes using django's `MediaDefiningClass` as metaclass. They can be
 equipped with a :class:`~django.forms.Media` class like django's forms and
@@ -24,6 +30,15 @@ widgets::
 
 The merged media assets will be available as a `media` template variable for the
 page. See :meth:`~.PageRenderer.get_media_assets` for details.
+
+Page specific renderer for sections
+-----------------------------------
+
+Renderer for sections might be page specific: suppose you have a section
+representing a gallery. You could register one renderer for the page with the
+gallery view and another for the page with the detail view of a gallery item.
+See :func:`~.register` for more information about registering a section renderer
+for a specific page type.
 """
 
 from django.template.loader import get_template
@@ -35,7 +50,7 @@ from .models import Page
 
 REGISTRY = dict()
 
-def register(model_cls, renderer_cls=None):
+def register(model_cls, renderer_cls=None, page_type=None):
     """
     Register a renderer class for a page or section model. This function can
     also be used as a decorator::
@@ -44,13 +59,29 @@ def register(model_cls, renderer_cls=None):
         class FancyPageRenderer(renderers.PageRenderer):
             ...
 
+    It is possible to register a section renderer for a specific page type. If
+    you do something like this::
+
+        @renderers.register(FancySection, page_type=FancyPage)
+        class FancySectionRenderer(renderers.SectionRenderer):
+            ...
+
+    the `FancySectionRenderer` would only be used for sections on a FancyPage
+    instance.
+
     :param model_cls: model to be rendered
     :type model_cls: :class:`~.models.Page` or :class:`~.models.Section`
     :param renderer_cls: renderer class
     :type renderer_cls: :class:`~.PageRenderer` or :class:`~.SectionRenderer`
+    :param page_type: the page type a section should be registered for
+    :type page_type: subclass of :class:`~.models.Page`
     """
     def _register(renderer_cls):
-        REGISTRY[model_cls] = renderer_cls
+        if issubclass(model_cls, Page):
+            REGISTRY[model_cls] = renderer_cls
+        else:
+            REGISTRY[model_cls] = REGISTRY.get(model_cls) or dict()
+            REGISTRY[model_cls][page_type] = renderer_cls
         return renderer_cls
 
     # Called as a function.
@@ -62,18 +93,27 @@ def register(model_cls, renderer_cls=None):
         return _register
 
 
-def get_renderer(obj):
+def get_renderer(obj, page=None):
     """
     Return the registered renderer for a page or section. Fall back to
     the default renderers: :class:`~.PageRenderer` or :class:`~.SectionRenderer`.
 
     :param obj: page or section instance to be rendered
-    :type obj: :class:`~.models.Page` or :class:`~.models.Section`
+    :type obj: instance of :class:`~.models.Page` or :class:`~.models.Section`
+    :param page: the page a section should be renderered for
+    :type page: instance of :class:`~.models.Page`
     :return: renderer class
     :rtype: :class:`~.PageRenderer` or :class:`~.SectionRenderer`
     """
-    default_renderer = PageRenderer if isinstance(obj, Page) else SectionRenderer
-    return REGISTRY.get(type(obj), default_renderer)
+    if isinstance(obj, Page):
+        return REGISTRY.get(type(obj), PageRenderer)
+    else:
+        if type(obj) in REGISTRY:
+            renderer = REGISTRY[type(obj)].get(type(page))
+            renderer = renderer or REGISTRY[type(obj)].get(None)
+            return renderer or SectionRenderer
+        else:
+            return SectionRenderer
 
 
 class SectionRenderer(metaclass=MediaDefiningClass):
@@ -193,7 +233,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         """
         region_data = {'title': title, 'name': region, 'sections': []}
         for section in getattr(self.page, region):
-            renderer_cls = get_renderer(section)
+            renderer_cls = get_renderer(section, self.page)
             renderer = renderer_cls(section, self.page, region, self.request, **self.params)
             region_data['sections'].append(renderer)
         return region_data
