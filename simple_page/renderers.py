@@ -44,6 +44,8 @@ for a specific page type.
 from django.template.loader import get_template
 from django.template.context import Context
 from django.forms.widgets import MediaDefiningClass
+from django.template import TemplateDoesNotExist
+from django.utils.html import mark_safe
 from .utils import camel_to_snake
 from .models import Page
 
@@ -190,6 +192,34 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         template = get_template(self.get_template_name())
         return template.render(context, request=self.request)
 
+    def get_extra_head(self):
+        """
+        Return additional HTML to be included in the page's `<head>` section.
+        This method is called within the :meth:`~.PageRenderer.extra_head`'s
+        method of the page renderer.
+
+        By default this method tries to render a head partial using the template
+        and context returned by :meth:`~.get_template_name` and
+        :meth:`~.get_context_data` methods. If this fails it just returns an
+        empty string. This allows you to provide extra head content for a
+        section by simply adding a head partial to your section's template.
+
+        Feel free to override this method to generate your extra head content.
+
+        {note}
+        Template partials are supported since django 6.0. For older versions
+        this method silently fails and returns an empty string.
+
+        :return str: additional HTML for the `<head>` of the rendered page.
+        """
+        try:
+            template = get_template(f'{self.get_template_name()}#head')
+        except TemplateDoesNotExist:
+            return ''
+        else:
+            context = self.get_context_data()
+            return template.render(context, request=self.request)
+
 
 class PageRenderer(metaclass=MediaDefiningClass):
     """
@@ -250,6 +280,16 @@ class PageRenderer(metaclass=MediaDefiningClass):
             media += section.media
         return media
 
+    def get_extra_head(self, sections):
+        """
+        Return additional HTML to be included in the page's `<head>` section by
+        calling the :meth:`~.SectionRenderer.get_extra_head` method of all
+        section renderers and concatenating their output.
+
+        :return str: additional HTML for the `<head>` of the rendered page.
+        """
+        return mark_safe('\n'.join(r.get_extra_head() for r in sections))
+
     def get_template_name(self):
         """
         Return the template path. It will be build based on the page's class
@@ -270,6 +310,8 @@ class PageRenderer(metaclass=MediaDefiningClass):
         - `regions`: mapping of region names to their data build by
           :meth:`~.get_region_data`
         - `media`: media assets build by :meth:`~.get_media_assets`
+        - `extra_head`: additional HTML for the `<head>` of the rendered page build by
+          :meth:`~.get_extra_head`
 
         As a shortcut each region data will also be added using the region's
         name as an own context variable. In your template these variables are
@@ -287,6 +329,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
             context['regions'][region] = context[region]
             sections |= set(context[region]['sections'])
         context['media'] = self.get_media_assets(sections)
+        context['extra_head'] = self.get_extra_head(sections)
 
         return context
 
