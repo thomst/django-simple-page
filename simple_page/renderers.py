@@ -198,20 +198,22 @@ class SectionRenderer(metaclass=MediaDefiningClass):
     def get_extra_head(self):
         """
         Return additional HTML to be included in the page's `<head>` section.
-        This method is called within the :meth:`~.PageRenderer.extra_head`'s
+        This method is called within the :meth:`~.PageRenderer.get_extra_head`'s
         method of the page renderer.
 
-        By default this method tries to render a head partial using the template
-        and context returned by :meth:`~.get_template_name` and
-        :meth:`~.get_context_data` methods. If this fails it just returns an
-        empty string. This allows you to provide extra head content for a
-        section by simply adding a head partial to your section's template.
+        By default this method tries to render a 'head' partial using the
+        template and context returned by :meth:`~.get_template_name` and
+        :meth:`~.get_context_data`. It fails silently if no such partial was
+        defined. This allows you to provide extra head content for a section by
+        simply adding such a partial to your section's template. See the
+        `django docs`_ for more information about partials.
 
-        Feel free to override this method to generate your extra head content.
+        .. _django docs: https://docs.djangoproject.com/en/6.1/ref/templates/language/#template-partials
 
-        {note}
-        Template partials are supported since django 6.0. For older versions
-        this method silently fails and returns an empty string.
+        .. note::
+            Template partials are supported since django 6.0. If you are using
+            an older django version and want to provide extra head content for
+            your section please override this method in your section renderer.
 
         :return str: additional HTML for the `<head>` of the rendered page.
         """
@@ -284,9 +286,8 @@ class PageRenderer(metaclass=MediaDefiningClass):
 
     def get_extra_head(self, sections):
         """
-        Return additional HTML to be included in the page's `<head>` section by
-        calling the :meth:`~.SectionRenderer.get_extra_head` method of all
-        section renderers and concatenating their output.
+        Build additional HTML from the output of all section renderers'
+        :meth:`~.SectionRenderer.get_extra_head` methods.
 
         :return str: additional HTML for the `<head>` of the rendered page.
         """
