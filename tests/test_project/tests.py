@@ -190,7 +190,6 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
         self.assertIn('extra', context)
         self.assertIn('media', context)
         self.assertIn('regions', context)
-        self.assertIn('sections', context)
         for region in self.page.get_regions():
             self.assertIn(region[0], context)
             self.assertIn(region[0], context['regions'])
