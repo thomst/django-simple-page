@@ -288,7 +288,8 @@ class PageRenderer(metaclass=MediaDefiningClass):
 
         :return str: additional HTML for the `<head>` of the rendered page.
         """
-        return mark_safe('\n'.join(r.get_extra_head() for r in sections))
+        extra_head = [r.get_extra_head() for r in sections]
+        return mark_safe('\n'.join(html for html in extra_head if html))
 
     def get_template_name(self):
         """
