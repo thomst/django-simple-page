@@ -2,8 +2,10 @@ import os
 import copy
 import re
 import tempfile
+from unittest import skipUnless
 from pathlib import Path
 
+import django
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -233,6 +235,46 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
             for section in sections:
                 region_data = section.get_region_data()
                 self.assertIn(region_data, html)
+
+
+@skipUnless(django.VERSION >= (6, 0), 'Django template partials require Django 6.0+')
+class ExtraHeadTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, TestCase):
+
+    @classmethod
+    def setup_templates(cls):
+        super().setup_templates()
+        test_project_dir = Path(__file__).resolve().parent
+        template_dir = test_project_dir / 'templates' / 'sections'
+        template_file = tempfile.NamedTemporaryFile(dir=str(template_dir), delete=False)
+        html = b'<p>{{ section.text }}</p>{% partialdef head %}<meta name="section" content="{{ section.title }}">{% endpartialdef %}'
+        with template_file as cls.head_section_template:
+            cls.head_section_template.write(html)
+
+    @classmethod
+    def remove_templates(cls):
+        super().remove_templates()
+        os.remove(cls.head_section_template.name)
+
+    @classmethod
+    def setup_section_renderer(cls):
+        super().setup_section_renderer()
+
+        class SectionRendererWithHead(cls.section_renderer_class_one):
+            def get_template_name(self):
+                return f'sections/{Path(cls.head_section_template.name).name}'
+
+        cls.section_renderer_class_one = SectionRendererWithHead
+
+    def setUp(self):
+        self.page = MainPage.objects.last()
+        self.page_renderer = self.page_renderer_class(self.page)
+
+    def test_extra_head_from_section_partial(self):
+        context = self.page_renderer.get_context_data()
+        html = self.page_renderer.render()
+        title = self.page.sections.select_subclasses().first().title
+        self.assertIn(f'<meta name="section" content="{ title }">', context['extra_head'])
+        self.assertIn(f'<meta name="section" content="{ title }">', html)
 
 
 class PageTests(AddSectionsMixin, TestDataMixin, TestCase):
