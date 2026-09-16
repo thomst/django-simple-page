@@ -290,17 +290,14 @@ class PageRenderer(metaclass=MediaDefiningClass):
 
         return context
 
-    def render(self, context=None):
+    def render(self, **context):
         """
         Return the rendered HTML using the template and context returned by
         :meth:`~.get_template_name` and :meth:`~.get_context_data` methods.
 
-        :param context: additional context to be passed to the template
-        :type context: :class:`~django.template.Context` or dict, optional
+        :param dict context: additional context to be passed to the template
         :return str: rendered HTML
         """
-        context = context.flatten() if isinstance(context, Context) else context
-        context = context or dict()
         context.update(self.get_context_data())
         template = get_template(self.get_template_name())
         return template.render(context, request=self.request)
