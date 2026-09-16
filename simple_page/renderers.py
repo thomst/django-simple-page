@@ -218,7 +218,7 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         try:
             template = get_template(f'{self._template_name}#head')
         except TemplateDoesNotExist:
-            return str()
+            pass
         else:
             return template.render(self._context, request=self.request)
 
