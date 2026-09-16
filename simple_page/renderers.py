@@ -152,6 +152,10 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         self.region = region
         self.request = request
         self.params = params
+        # Be sure not to call get_template_name and get_context_data twice in
+        # render and get_extra_head. So we cache the values here.
+        self._template_name = self.get_template_name()
+        self._context = self.get_context_data()
 
     def get_template_name(self):
         """
@@ -186,10 +190,9 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         :rtype: str
         """
         # If coming from the include template tag we get a `Context` object.
-        context = context.flatten() if isinstance(context, Context) else context
-        context = context or dict()
-        context.update(self.get_context_data())
-        template = get_template(self.get_template_name())
+        context = context.flatten() if isinstance(context, Context) else context or dict()
+        context.update(self._context)
+        template = get_template(self._template_name)
         return template.render(context, request=self.request)
 
     def get_extra_head(self):
@@ -213,12 +216,11 @@ class SectionRenderer(metaclass=MediaDefiningClass):
         :return str: additional HTML for the `<head>` of the rendered page.
         """
         try:
-            template = get_template(f'{self.get_template_name()}#head')
+            template = get_template(f'{self._template_name}#head')
         except TemplateDoesNotExist:
-            return ''
+            return str()
         else:
-            context = self.get_context_data()
-            return template.render(context, request=self.request)
+            return template.render(self._context, request=self.request)
 
 
 class PageRenderer(metaclass=MediaDefiningClass):
