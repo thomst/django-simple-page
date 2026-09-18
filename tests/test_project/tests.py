@@ -44,7 +44,7 @@ class AddSectionsMixin:
     def setUpClass(cls):
         super().setUpClass()
         page = MainPage.objects.first()
-        for region, _ in MainPage.get_regions():
+        for region, _ in MainPage.REGIONS:
             cls.add_section(page, region)
 
     @staticmethod
@@ -192,7 +192,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
         self.assertIn('extra', context)
         self.assertIn('media', context)
         self.assertIn('regions', context)
-        for region in self.page.get_regions():
+        for region in self.page.REGIONS:
             self.assertIn(region[0], context)
             self.assertIn(region[0], context['regions'])
             self.assertIn('sections', context[region[0]])
@@ -225,7 +225,7 @@ class PageRendererTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, Tes
         self.assertIn(self.section_renderer_class_one.extra_data, html)
 
         # Check regions.
-        for region, title in self.page.get_regions():
+        for region, title in self.page.REGIONS:
 
             # Check regions title rendering.
             self.assertIn(title, html)
@@ -286,7 +286,7 @@ class PageTests(AddSectionsMixin, TestDataMixin, TestCase):
 
     def test_get_regions(self):
         page = MainPage.objects.first()
-        for region, _ in page.get_regions():
+        for region, _ in page.REGIONS:
             self.assertTrue(hasattr(page, region))
             for section in getattr(page, region).all():
                 # The section queryset uses select_subclasses.
@@ -352,7 +352,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
         for url in [change_page_url, add_page_url]:
             resp = self.client.get(url)
             self.assertEqual(resp.status_code, 200)
-            for _, title in MainPage.get_regions():
+            for _, title in MainPage.REGIONS:
                 regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
                 self.assertRegex(resp.content.decode('utf8'), regex)
 
@@ -365,7 +365,7 @@ class AdminBackendTests(TestDataMixin, TestCase):
         for url in [change_page_url, change_header_page_url, add_header_page_url]:
             resp = self.client.get(url, follow=True)
             self.assertEqual(resp.status_code, 200)
-            for _, title in PageWithHeader.get_regions():
+            for _, title in PageWithHeader.REGIONS:
                 regex = r'<h2[^>]*>\s*{}\s*</h2>'.format(title)
                 self.assertRegex(resp.content.decode('utf8'), regex)
 

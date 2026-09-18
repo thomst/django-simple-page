@@ -328,7 +328,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         context['page'] = self.page
         context['regions'] = dict()
         sections = set()
-        for region, title in self.page.get_regions():
+        for region, title in self.page.REGIONS:
             context[region] = self.get_region_data(region, title)
             context['regions'][region] = context[region]
             sections |= set(context[region]['sections'])

@@ -96,14 +96,6 @@ class Page(MPTTModel):
         ]
     """
 
-    @classmethod
-    def get_regions(cls):
-        """
-        Return the regions for this page. This method can be customized by child
-        classes to return different regions.
-        """
-        return cls.REGIONS
-
     def resolve_obj(self):
         """
         Return the instance of the child class.
@@ -139,7 +131,7 @@ class Page(MPTTModel):
         If the attribute name is a region return its sections, otherwise raise
         AttributeError.
         """
-        if name in [region for region, _ in self.get_regions()]:
+        if name in [region for region, _ in self.REGIONS]:
             sections = self.sections.filter(pagesection__region=name)
             return sections.select_subclasses().order_by("pagesection__index")
         else:

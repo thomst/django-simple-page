@@ -93,9 +93,6 @@ class RenderPageRegionsMixin(GetPageModelMixin):
     the region form field.
     """
 
-    def get_page_regions(self, request, obj):
-        return self.get_page_model(request, obj).get_regions()
-
     def get_formset_kwargs(self, request, obj, inline, prefix):
         kwargs = super().get_formset_kwargs(request, obj, inline, prefix)
         if isinstance(inline, BaseRegionInline):
@@ -107,7 +104,7 @@ class RenderPageRegionsMixin(GetPageModelMixin):
 
     def get_inlines(self, request, obj):
         inlines = list(super().get_inlines(request, obj))
-        regions = self.get_page_regions(request, obj)
+        regions = self.get_page_model(request, obj).REGIONS
         for region, title in regions:
             class_name = f"{region.capitalize()}Inline"
             attrs = dict(
