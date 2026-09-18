@@ -23,6 +23,7 @@ from django.utils.html import mark_safe
 from django.urls import reverse
 from django.shortcuts import redirect
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import BadRequest
 from django.utils.translation import gettext as _
 from mptt.admin import DraggableMPTTAdmin
 from .models import Page, PageSection
@@ -72,16 +73,23 @@ class GetPageModelMixin:
         """
         Return the page model based on the request and object.
         """
-        if obj:
+        # If we have a saved obj we use its page_type field.
+        if obj and hasattr(obj, "page_type"):
             return obj.page_type.model_class()
+
+        # When adding a new page we have a page_type url query parameter for
+        # proxy page models.
         elif 'page_type' in request.GET:
-            page_type_id = request.GET['page_type']
             try:
-                page_type = [ct for ct in self.page_types if ct.id == int(page_type_id)][0]
-            except (IndexError, ValueError):
-                raise ValueError(f"Invalid page type id: {page_type_id}")
+                ct_id = int(request.GET['page_type'])
+                page_type = next(ct for ct in self.page_types if ct.id == ct_id)
+            except (ValueError, StopIteration) as exc:
+                raise BadRequest(f"Invalid page type id: {ct_id}")
             else:
                 return page_type.model_class()
+
+        # Or we are in a modeladmin context for a concrete page model. In this
+        # case the modeladmin's model is already what we need.
         else:
             return self.model
 

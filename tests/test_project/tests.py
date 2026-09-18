@@ -383,7 +383,8 @@ class AdminBackendTests(TestDataMixin, TestCase):
 
     def test_get_page_type_mixin_with_invalid_id(self):
         url = f"{reverse('admin:simple_page_page_add')}?page_type=9999"
-        self.assertRaises(ValueError, self.client.get, url)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 400)
 
     def test_set_page_type_mixin(self):
         add_page_url = reverse('admin:test_project_pagewithheader_add')
