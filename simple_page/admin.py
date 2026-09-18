@@ -96,7 +96,7 @@ class RenderPageRegionsMixin(GetPageModelMixin):
     def get_formset_kwargs(self, request, obj, inline, prefix):
         kwargs = super().get_formset_kwargs(request, obj, inline, prefix)
         if isinstance(inline, BaseRegionInline):
-             kwargs["initial"] = [
+            kwargs["initial"] = [
                 {"region": inline.region_name}
                 for i in range(inline.extra)
             ]
