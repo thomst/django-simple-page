@@ -3,7 +3,7 @@
 {% block content %}
     <header>
         <p><b>[{{ regions.header.title }}]</b></p>
-        <h2>{{ header_info }}</h2>
+        <h2>{{ page.header_info }}</h2>
         {% for section in regions.header.sections %}
             {% include section %}
         {% endfor %}

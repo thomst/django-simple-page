@@ -7,11 +7,6 @@ class PageWithHeaderRenderer(renderers.PageRenderer):
     class Media:
         css = dict(all=['pages/header.css'])
 
-    def get_context_data(self):
-        context = super().get_context_data()
-        context['header_info'] = self.page.header_info
-        return context
-
 
 @renderers.register(TextSection)
 class TextSectionRenderer(renderers.SectionRenderer):
