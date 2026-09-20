@@ -282,7 +282,7 @@ class PageTests(AddSectionsMixin, TestDataMixin, TestCase):
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
             child = page.resolve_obj()
-            self.assertTrue(isinstance(child, (MainPage, PageWithHeader)))
+            self.assertIsInstance(child, (MainPage, PageWithHeader))
 
     def test_get_regions(self):
         page = MainPage.objects.first()
