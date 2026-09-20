@@ -3,12 +3,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}django-simple-page demo{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'pages/base.css' %}">
-    {% block extra_head %}{{ media }}{% endblock %}
+    {% block head %}
+        <meta charset="UTF-8">
+        <title>{% block title %}django-simple-page demo{% endblock %}</title>
+        <link rel="stylesheet" href="{% static 'pages/base.css' %}">
+        {{ media }}
+    {% endblock %}
 </head>
 <body>
-    {% block content %}{% endblock %}
+    {% block content %}
+    {% endblock %}
 </body>
 </html>
