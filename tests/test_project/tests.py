@@ -393,6 +393,17 @@ class AdminBackendTests(TestDataMixin, TestCase):
         input = f'<input type="hidden" name="page_type" value="{self.header_page_type.id}" id="id_page_type">'
         self.assertInHTML(input, resp.content.decode('utf8'))
 
+    def test_region_initial_in_inline_forms(self):
+        url = reverse('admin:test_project_pagewithheader_add')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        # Get all hidden region input values.
+        html = resp.content.decode('utf8')
+        regex = r'<input type="hidden" name="pagesection_set-[0-9-]+-region" value="([a-z]+)"'
+        regions = re.findall(regex, html, re.DOTALL)
+        self.assertListEqual(regions, [r[0] for r in PageWithHeader.REGIONS])
+
 
 class PageViewTests(TestDataMixin, TestCase):
 
