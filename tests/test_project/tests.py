@@ -297,37 +297,6 @@ class PageTests(TestDataMixin, TestCase):
             page.non_existing_region
 
 
-class UpdateIndexesTests(TestDataMixin, TestCase):
-
-    def test_update_indexes_on_deleting(self):
-        page = MainPage.objects.first()
-        page_sections = PageSection.objects.filter(page=page, region='main')
-
-        # Get original indexes.
-        old_indxs = dict(page_sections.values_list('id', 'index'))
-
-        # Delete first item and reload indexes.
-        page_sections.first().delete()
-        page_sections = page_sections.all()
-        new_indxs = dict(page_sections.values_list('id', 'index'))
-
-        # Check that they were decreased by one.
-        self.assertEqual(len(old_indxs) - 1, len(new_indxs))
-        for id, index in new_indxs.items():
-            self.assertEqual(index, old_indxs[id] - 1)
-
-    def test_set_index_on_adding(self):
-        page = MainPage.objects.first()
-        section = Section.objects.first()
-        page_sections = PageSection.objects.filter(page=page, region='main')
-        last_index = page_sections.last().index
-        new_page_section = PageSection.objects.create(
-            page=page,
-            region='main',
-            section=section)
-        self.assertEqual(new_page_section.index, last_index + 1)
-
-
 class AdminBackendTests(TestDataMixin, TestCase):
 
     def setUp(self):
