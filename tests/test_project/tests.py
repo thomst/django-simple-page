@@ -277,7 +277,7 @@ class ExtraHeadTests(AddSectionsMixin, SetupRendererMixin, TestDataMixin, TestCa
         self.assertIn(f'<meta name="section" content="{ title }">', html)
 
 
-class PageTests(AddSectionsMixin, TestDataMixin, TestCase):
+class PageTests(TestDataMixin, TestCase):
 
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
