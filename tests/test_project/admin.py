@@ -1,11 +1,16 @@
 from django.contrib import admin
 from simple_page.admin import BasePageAdmin
-from .models import TextSection
+from .models import TextSection, FooterSection
 from .models import PageWithHeader
 
 
 @admin.register(TextSection)
 class TextSectionAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(FooterSection)
+class FooterSectionAdmin(admin.ModelAdmin):
     pass
 
 

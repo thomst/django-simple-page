@@ -16,7 +16,7 @@ from simple_page.models import Page, PageSection, Section
 from simple_page import renderers
 from simple_page import __version__
 
-from .models import TextSection, MainPage, PageWithHeader
+from .models import TextSection, FooterSection, MainPage, PageWithHeader
 
 
 class TestDataMixin:
@@ -290,7 +290,7 @@ class PageTests(TestDataMixin, TestCase):
             self.assertTrue(hasattr(page, region))
             for section in getattr(page, region).all():
                 # The section queryset uses select_subclasses.
-                self.assertIsInstance(section, TextSection)
+                self.assertIsInstance(section, (TextSection, FooterSection))
 
         # Raise AttributeError for non existing region.
         with self.assertRaises(AttributeError):
@@ -372,6 +372,31 @@ class AdminBackendTests(TestDataMixin, TestCase):
         regex = r'<input type="hidden" name="pagesection_set-[0-9-]+-region" value="([a-z]+)"'
         regions = re.findall(regex, html, re.DOTALL)
         self.assertListEqual(regions, [r[0] for r in PageWithHeader.REGIONS])
+
+    def test_section_options_in_inline_forms(self):
+        url = reverse('admin:test_project_pagewithheader_add')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        # Get all section select options from html.
+        html = resp.content.decode('utf8')
+        regex = r'<select[^>]+name="pagesection_set-[0-9-]+-section"[^>]+>(.*?)</select>'
+        selects = re.findall(regex, html, re.DOTALL)
+
+        # Loop over selects per regions. Just use zip to combine both.
+        for region, select in zip([r for r, _ in PageWithHeader.REGIONS], selects):
+
+            # Get the allowed sections for this region.
+            section_models = tuple(PageWithHeader.REGION_SECTIONS.get(region, []))
+            if section_models:
+                sections = Section.objects.select_subclasses(*section_models)
+                section_ids = [str(s.id) for s in sections if isinstance(s, section_models)]
+            else:
+                section_ids = [str(s.id) for s in Section.objects.all()]
+
+            # Get option values from select html and compare them with the section_ids.
+            options = re.findall(r'<option[^>]+value="([0-9]+)"[^>]*>', select)
+            self.assertSetEqual(set(section_ids), set(options))
 
 
 class PageViewTests(TestDataMixin, TestCase):
