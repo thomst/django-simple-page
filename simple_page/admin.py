@@ -26,8 +26,24 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest
 from django.utils.translation import gettext as _
 from mptt.admin import DraggableMPTTAdmin
-from .models import Page, PageSection
+from .models import Page, PageSection, Section
 from .forms import ReorderRelationForm
+
+
+class PageSectionInlineForm(ReorderRelationForm):
+    """
+    A form used by the BaseRegionInline to update the queryset for the section
+    field to only include sections which are allowed in the given region.
+    """
+
+    def __init__(self, *args, **kwargs):
+        section_models = kwargs.pop("section_models", None)
+        super().__init__(*args, **kwargs)
+
+        if section_models:
+            sections = Section.objects.select_subclasses()
+            section_ids = [s.id for s in sections if type(s) in section_models]
+            self.fields["section"].queryset = Section.objects.filter(id__in=section_ids)
 
 
 class BaseRegionInline(admin.TabularInline):
@@ -40,7 +56,7 @@ class BaseRegionInline(admin.TabularInline):
     .. _django-reorder-items-widget: https://github.com/thomst/django-reorder-items-widget
     """
     region_name = None
-    form = ReorderRelationForm
+    form = PageSectionInlineForm
     model = PageSection
     extra = 1
     fields = ("section", "index", "region")
@@ -108,6 +124,9 @@ class RenderPageRegionsMixin(GetPageModelMixin):
                 {"region": inline.region_name}
                 for i in range(inline.extra)
             ]
+            region_sections = self.get_page_model(request, obj).REGION_SECTIONS
+            section_models = region_sections.get(inline.region_name)
+            kwargs["form_kwargs"] = dict(section_models=section_models)
         return kwargs
 
     def get_inlines(self, request, obj):

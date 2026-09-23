@@ -96,6 +96,17 @@ class Page(MPTTModel):
         ]
     """
 
+    REGION_SECTIONS = dict()
+    """
+    Limit the allowed section models for specific regions by providing a
+    dictionary mapping region names to a list of section models like this::
+
+        REGION_SECTIONS = {
+            'main': [FancySection, AnotherFancySection],
+            'sidebar': [SidebarSection],
+        }
+    """
+
     def resolve_obj(self):
         """
         Return the instance of the child class.
