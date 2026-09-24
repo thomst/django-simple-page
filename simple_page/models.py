@@ -98,8 +98,8 @@ class Page(MPTTModel):
 
     REGION_SECTIONS = dict()
     """
-    Limit the allowed section models for specific regions by providing a
-    dictionary mapping region names to a list of section models like this::
+    Limit the section models allowed within a specific region with a mapping
+    like this::
 
         REGION_SECTIONS = {
             'main': [FancySection, AnotherFancySection],
