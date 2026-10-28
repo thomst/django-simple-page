@@ -281,7 +281,7 @@ class PageTests(TestDataMixin, TestCase):
 
     def test_resolve_page_obj(self):
         for page in Page.objects.all():
-            child = page.resolve_obj()
+            child = page.resolved_obj
             self.assertIsInstance(child, (MainPage, PageWithHeader))
 
     def test_get_regions(self):
@@ -298,7 +298,7 @@ class PageTests(TestDataMixin, TestCase):
 
     def test_get_absolute_url(self):
         for page in Page.objects.all():
-            child = page.resolve_obj()
+            child = page.resolved_obj
             self.assertEqual(page.get_absolute_url(), child.get_absolute_url())
 
     def test_missing_get_absolute_url(self):

@@ -32,6 +32,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from model_utils.managers import InheritanceManager
 
 from django.db import models
+from django.utils.functional import cached_property
 from django.contrib.contenttypes.models import ContentType
 
 from reorder_items_widget import ReorderItemsField
@@ -106,7 +107,8 @@ class Page(MPTTModel):
         }
     """
 
-    def resolve_obj(self):
+    @cached_property
+    def resolved_obj(self):
         """
         Return the instance of the child class.
         """
@@ -138,17 +140,16 @@ class Page(MPTTModel):
         # Since we do not control the url patterns we cannot provide a default
         # get_absolute_url method for pages. Instead we call the child model
         # instance's method.
-        resolved_self = self.resolve_obj()
         try:
             # Be sure this method was not called from a child model instance and
             # the child model instance has its own implementation of it.
             assert type(self) == Page
-            assert type(resolved_self).get_absolute_url != Page.get_absolute_url
+            assert type(self.resolved_obj).get_absolute_url != Page.get_absolute_url
         except AssertionError:
-            msg = f"'{resolved_self.__class__.__name__}' must implement the get_absolute_url method."
+            msg = f"'{self.resolved_obj.__class__.__name__}' must implement the get_absolute_url method."
             raise NotImplementedError(msg)
         else:
-            return resolved_self.get_absolute_url()
+            return self.resolved_obj.get_absolute_url()
 
 
     def __str__(self):

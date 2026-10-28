@@ -232,7 +232,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
     as a HTTP response::
 
         def page_view(request, slug, **kwargs):
-            page = get_object_or_404(Page, slug=slug).resolve_obj()
+            page = get_object_or_404(Page, slug=slug).resolved_obj
             renderer_cls = get_renderer(page)
             return HttpResponse(renderer_cls(page, request).render(**kwargs))
 

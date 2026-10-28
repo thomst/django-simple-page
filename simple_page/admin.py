@@ -198,7 +198,7 @@ class ChoosePageTypeMixin(GetPageModelMixin):
 
         # Otherwise we do a redirect to the page's change view.
         else:
-            kwargs = dict(object_id=obj.resolve_obj().id)
+            kwargs = dict(object_id=obj.resolved_obj.id)
             url = reverse(f"admin:{ct.app_label}_{ct.model}_change", kwargs=kwargs)
             return redirect(url, permanent=True)
 

@@ -17,6 +17,6 @@ def page_view(request, slug, **kwargs):
     :rtype: :class:`~django.http.HttpResponse`
     :raises Http404: if no page with the given slug exists
     """
-    page = get_object_or_404(Page, slug=slug).resolve_obj()
+    page = get_object_or_404(Page, slug=slug).resolved_obj
     renderer_cls = get_renderer(page)
     return HttpResponse(renderer_cls(page, request, **kwargs).render())
