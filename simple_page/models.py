@@ -32,7 +32,6 @@ from mptt.models import MPTTModel, TreeForeignKey
 from model_utils.managers import InheritanceManager
 
 from django.db import models
-from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 
 from reorder_items_widget import ReorderItemsField
