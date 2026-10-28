@@ -12,7 +12,7 @@ def page_view(request, slug, **kwargs):
     :param request: HTTP request
     :type request: :class:`~django.http.HttpRequest`
     :param str slug: slug of the page to be rendered
-    :param kwargs: Additional data as keyword arguments (default empty dict)
+    :param dict kwargs: Additional data as keyword arguments (default empty dict)
     :return: HTTP response with the rendered page
     :rtype: :class:`~django.http.HttpResponse`
     :raises Http404: if no page with the given slug exists
