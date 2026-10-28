@@ -16,7 +16,7 @@ from simple_page.models import Page, PageSection, Section
 from simple_page import renderers
 from simple_page import __version__
 
-from .models import TextSection, FooterSection, MainPage, PageWithHeader
+from .models import PageWithoutGetAbsoluteUrl, TextSection, FooterSection, MainPage, PageWithHeader
 
 
 class TestDataMixin:
@@ -295,6 +295,25 @@ class PageTests(TestDataMixin, TestCase):
         # Raise AttributeError for non existing region.
         with self.assertRaises(AttributeError):
             page.non_existing_region
+
+    def test_get_absolute_url(self):
+        for page in Page.objects.all():
+            child = page.resolve_obj()
+            self.assertEqual(page.get_absolute_url(), child.get_absolute_url())
+
+    def test_missing_get_absolute_url(self):
+        page = PageWithoutGetAbsoluteUrl.objects.create(
+            title="Test Page",
+            slug="test-page",
+            page_type=ContentType.objects.get_for_model(PageWithoutGetAbsoluteUrl)
+            )
+        page.save()
+
+        with self.assertRaises(NotImplementedError):
+            page.get_absolute_url()
+
+        with self.assertRaises(NotImplementedError):
+            Page.objects.get(id=page.id).get_absolute_url()
 
 
 class AdminBackendTests(TestDataMixin, TestCase):

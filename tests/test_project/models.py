@@ -57,3 +57,14 @@ class PageWithHeader(GetUrlMixin, Page):
     }
 
     header_info = models.CharField(max_length=255, blank=True)
+
+
+class PageWithoutGetAbsoluteUrl(Page):
+    REGIONS = [
+        ('sidebar', 'Sidebar'),  # Not really used for section.
+        ('main', 'Main Region'),
+        ('footer', 'Footer'),
+    ]
+
+    class Meta:
+        proxy = True
