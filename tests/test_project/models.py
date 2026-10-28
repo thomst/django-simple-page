@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 from simple_page.models import Section
 from simple_page.models import Page
@@ -22,7 +23,12 @@ class FooterSection(Section):
         return self.title or f'{self.text[:8]} ...'
 
 
-class MainPage(Page):
+class GetUrlMixin:
+    def get_absolute_url(self):
+        return reverse('page', kwargs={'slug': self.slug})
+
+
+class MainPage(GetUrlMixin, Page):
     REGIONS = [
         ('sidebar', 'Sidebar'),  # Not really used for section.
         ('main', 'Main Region'),
@@ -37,7 +43,7 @@ class MainPage(Page):
         proxy = True
 
 
-class PageWithHeader(Page):
+class PageWithHeader(GetUrlMixin, Page):
     REGIONS = [
         ('header', 'Header'),  # Not really used for section.
         ('sidebar', 'Sidebar'),  # Not really used for section.
