@@ -68,10 +68,10 @@ class Page(MPTTModel):
     """
     Base model for all pages.
 
-    The only thing a subclass has to do is to setup its :attr:`regions
-    <.Page.REGIONS>`. Since the database layout is fully functional, you may
-    define your own page model as a proxy if you do not want to provide
-    additional fields.
+    Each subclass has to do is to setup its :attr:`regions <.Page.REGIONS>` and
+    define a :meth:`get_absolute_url` method. Since the database layout is fully
+    functional, you may define your own page model as a proxy if you have no
+    need for additional database fields.
 
     Sections associated with a page are accessible by their region. Use the
     region's name to get a queryset of sections belonging to that region.
@@ -132,7 +132,25 @@ class Page(MPTTModel):
     )
 
     def get_absolute_url(self):
-        return reverse("page", kwargs={"slug": self.slug})
+        """
+        Return the absolute url of the resolved child model instance.
+        This method must be implemented by each subclass of :class:`~.Page`.
+        """
+        # Since we do not control the url patterns we cannot provide a default
+        # get_absolute_url method for pages. Instead we call the child model
+        # instance's method.
+        resolved_self = self.resolve_obj()
+        try:
+            # Be sure this method was not called from a child model instance and
+            # the child model instance has its own implementation of it.
+            assert type(self) == Page
+            assert type(resolved_self).get_absolute_url != Page.get_absolute_url
+        except AssertionError:
+            msg = f"'{resolved_self.__class__.__name__}' must implement the get_absolute_url method."
+            raise NotImplementedError(msg)
+        else:
+            return resolved_self.get_absolute_url()
+
 
     def __str__(self):
         return self.title
