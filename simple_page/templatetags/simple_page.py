@@ -20,6 +20,11 @@ def menu(page, max_level=None, include_root=False):
     - `nodes`: the page nodes to be rendered in the menu
     - `root`: the root page if `include_root` is True, otherwise None
 
+    .. note::
+        Your page models must implement a :meth:`get_absolute_url` method if you
+        want to build a menu for them with this template tag. Otherwise all
+        links will be empty.
+
     :param page: current page
     :type page: :class:`~.models.Page`
     :param int max_level: maximum level of submenus, defaults to None

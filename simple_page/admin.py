@@ -236,8 +236,11 @@ class PageAdmin(SetPageTypeMixin, ChoosePageTypeMixin, RenderPageRegionsMixin, D
     list_filter = ("parent",)
 
     def view_page_link(self, obj):
-        url = obj.get_absolute_url()
-        return mark_safe(f'<a href="{url}" target="_blank">View page</a>')
+        if hasattr(obj.resolved_obj, 'get_absolute_url'):
+            url = obj.resolved_obj.get_absolute_url()
+            return mark_safe(f'<a href="{url}" target="_blank">View page</a>')
+        else:
+            return "No view available"
     view_page_link.short_description = "View page"
 
 

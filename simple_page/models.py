@@ -132,26 +132,6 @@ class Page(MPTTModel):
         on_delete=models.SET_NULL,
     )
 
-    def get_absolute_url(self):
-        """
-        Return the absolute url of the resolved child model instance.
-        This method must be implemented by each subclass of :class:`~.Page`.
-        """
-        # Since we do not control the url patterns we cannot provide a default
-        # get_absolute_url method for pages. Instead we call the child model
-        # instance's method.
-        try:
-            # Be sure this method was not called from a child model instance and
-            # the child model instance has its own implementation of it.
-            assert type(self) == Page
-            assert type(self.resolved_obj).get_absolute_url != Page.get_absolute_url
-        except AssertionError:
-            msg = f"'{self.resolved_obj.__class__.__name__}' must implement the get_absolute_url method."
-            raise NotImplementedError(msg)
-        else:
-            return self.resolved_obj.get_absolute_url()
-
-
     def __str__(self):
         return self.title
 

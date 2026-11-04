@@ -296,25 +296,6 @@ class PageTests(TestDataMixin, TestCase):
         with self.assertRaises(AttributeError):
             page.non_existing_region
 
-    def test_get_absolute_url(self):
-        for page in Page.objects.all():
-            child = page.resolved_obj
-            self.assertEqual(page.get_absolute_url(), child.get_absolute_url())
-
-    def test_missing_get_absolute_url(self):
-        page = PageWithoutGetAbsoluteUrl.objects.create(
-            title="Test Page",
-            slug="test-page",
-            page_type=ContentType.objects.get_for_model(PageWithoutGetAbsoluteUrl)
-            )
-        page.save()
-
-        with self.assertRaises(NotImplementedError):
-            page.get_absolute_url()
-
-        with self.assertRaises(NotImplementedError):
-            Page.objects.get(id=page.id).get_absolute_url()
-
 
 class AdminBackendTests(TestDataMixin, TestCase):
 
@@ -448,7 +429,7 @@ class MenuTemplateTagTests(TestDataMixin, TestCase):
         context = Context({'page': page})
         rendered = template.render(context)
         for page in Page.objects.all():
-            regex = self.href_regex.format(re.escape(page.get_absolute_url()), re.escape(page.title))
+            regex = self.href_regex.format(re.escape(page.resolved_obj.get_absolute_url()), re.escape(page.title))
             self.assertRegex(rendered, regex)
 
     def test_menu_template_tag_without_root(self):
@@ -457,7 +438,7 @@ class MenuTemplateTagTests(TestDataMixin, TestCase):
         context = Context({'page': page})
         rendered = template.render(context)
         for page in Page.objects.all():
-            regex = self.href_regex.format(re.escape(page.get_absolute_url()), re.escape(page.title))
+            regex = self.href_regex.format(re.escape(page.resolved_obj.get_absolute_url()), re.escape(page.title))
             if page.is_root_node():
                 self.assertNotRegex(rendered, regex)
             else:
@@ -470,7 +451,7 @@ class MenuTemplateTagTests(TestDataMixin, TestCase):
             context = Context({'page': page})
             rendered = template.render(context)
             for page in Page.objects.all():
-                regex = self.href_regex.format(re.escape(page.get_absolute_url()), re.escape(page.title))
+                regex = self.href_regex.format(re.escape(page.resolved_obj.get_absolute_url()), re.escape(page.title))
                 if page.is_root_node() or page.get_ancestors().count() <= max_level:
                     self.assertRegex(rendered, regex)
                 else:
@@ -484,7 +465,7 @@ class MenuTemplateTagTests(TestDataMixin, TestCase):
             for node in Page.objects.all():
                 if node.is_root_node():
                     continue
-                href_regex = self.href_regex.format(re.escape(node.get_absolute_url()), re.escape(node.title))
+                href_regex = self.href_regex.format(re.escape(node.resolved_obj.get_absolute_url()), re.escape(node.title))
                 regex = r'<li class="active">\s*{}'.format(href_regex)
                 if node in context['page'].get_ancestors(include_self=True):
                     self.assertRegex(rendered, regex)
