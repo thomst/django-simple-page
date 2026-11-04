@@ -250,6 +250,21 @@ class PageRenderer(metaclass=MediaDefiningClass):
         self.request = request
         self.params = params
 
+    def get_region_sections(self, region):
+        """
+        Return the sections for a region. If a subclass defines a method named
+        `get_<region>_sections` it will be called. Otherwise the sections
+        assigned to the region on the page will be returned.
+
+        :param str region: region name
+        :return: list of section renderers for this region
+        :rtype: list of :class:`~.SectionRenderer`
+        """
+        if hasattr(self, f'get_{region}_sections'):
+            return getattr(self, f'get_{region}_sections')()
+        else:
+            return getattr(self.page, region)
+
     def get_region_data(self, region, title):
         """
         Build and return a dictionary holding the region's data:
@@ -264,7 +279,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         :rtype: dict
         """
         region_data = {'title': title, 'name': region, 'sections': []}
-        for section in getattr(self.page, region):
+        for section in self.get_region_sections(region):
             renderer_cls = get_renderer(section, self.page)
             renderer = renderer_cls(section, self.page, region, self.request, **self.params)
             region_data['sections'].append(renderer)
