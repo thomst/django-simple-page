@@ -411,6 +411,13 @@ class PageViewTests(TestDataMixin, TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertInHTML(f'<h1>{page.title}</h1>', resp.content.decode('utf8'))
 
+    def test_home_page_view(self):
+        page = Page.objects.filter(parent=None).first()
+        url = reverse('home')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertInHTML(f'<h1>{page.title}</h1>', resp.content.decode('utf8'))
+
     def test_page_view_with_invalid_slug(self):
         url = reverse('page', kwargs={'slug': 'invalid_slug'})
         resp = self.client.get(url)

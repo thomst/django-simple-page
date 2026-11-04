@@ -20,5 +20,6 @@ from simple_page.views import page_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', page_view, name='home'),
     path('<slug:slug>/', page_view, name='page'),
 ]
