@@ -7,6 +7,9 @@ class PageWithHeaderRenderer(renderers.PageRenderer):
     class Media:
         css = dict(all=['pages/header.css'])
 
+    def get_footer_sections(self):
+        return getattr(self.page, 'footer')
+
 
 @renderers.register(TextSection)
 class TextSectionRenderer(renderers.SectionRenderer):

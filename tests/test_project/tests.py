@@ -416,6 +416,13 @@ class PageViewTests(TestDataMixin, TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 404)
 
+    def test_page_with_header_view(self):
+        page = PageWithHeader.objects.first()
+        url = reverse('page', kwargs=dict(slug=page.slug))
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertInHTML(f'<h1>{page.title}</h1>', resp.content.decode('utf8'))
+
 
 class MenuTemplateTagTests(TestDataMixin, TestCase):
     @classmethod
