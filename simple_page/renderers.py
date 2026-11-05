@@ -252,9 +252,11 @@ class PageRenderer(metaclass=MediaDefiningClass):
 
     def get_region_sections(self, region):
         """
-        Return the sections for a region. If a subclass defines a method named
-        `get_<region>_sections` it will be called. Otherwise the sections
-        assigned to the region on the page will be returned.
+        Return the sections for a region. Normally this will be those sections
+        assigned to the region on the page. In some cases you might want to
+        provide the sections dynamically. In this case you can implement a
+        `get_<region>_sections` method on your page renderer class. This method
+        will be called instead of the default behavior.
 
         :param str region: region name
         :return: list of section renderers for this region

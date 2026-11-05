@@ -131,7 +131,8 @@ class RenderPageRegionsMixin(GetPageModelMixin):
 
     def get_inlines(self, request, obj):
         inlines = list(super().get_inlines(request, obj))
-        regions = self.get_page_model(request, obj).REGIONS
+        page_model = self.get_page_model(request, obj)
+        regions = [r for r in page_model.REGIONS if page_model.REGION_SECTIONS.get(r[0], True)]
         for region, title in regions:
             class_name = f"{region.capitalize()}Inline"
             attrs = dict(

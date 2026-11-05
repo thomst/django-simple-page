@@ -297,6 +297,7 @@ class PageTests(TestDataMixin, TestCase):
             page.non_existing_region
 
 
+# FIXME: Create a test with a region set to None in REGION_SECTIONS.
 class AdminBackendTests(TestDataMixin, TestCase):
 
     def setUp(self):

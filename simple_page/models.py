@@ -105,6 +105,13 @@ class Page(MPTTModel):
             'main': [FancySection, AnotherFancySection],
             'sidebar': [SidebarSection],
         }
+
+    If a region is not listed all section models are allowed within that region.
+    To completely disallow sections within a region set the region's value to
+    `None`. The region then won't be listed in the admin interface for that page
+    model. This is useful if you want to provide sections dynamically for a
+    specific region. See the :meth:`~renderers.PageRenderer.get_region_sections`
+    method for more information.
     """
 
     @cached_property
