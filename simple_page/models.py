@@ -27,6 +27,8 @@ Pages and sections are defined by subclassing the :class:`~.models.Page` and
 
 With those two models you are able to build a simple website.
 """
+# TODO: Add informations about page classes which are no models at all for
+# creating dynamic pages.
 
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils.managers import InheritanceManager
