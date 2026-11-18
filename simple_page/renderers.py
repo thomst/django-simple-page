@@ -146,7 +146,7 @@ class SectionRenderer(metaclass=MediaDefiningClass):
     :type request: :class:`~django.http.HttpRequest`, optional
     :param dict params: additional keyword arguments
     """
-    def __init__(self, section, page, region, request=None, **params):
+    def __init__(self, section, request=None, page=None, region=None, **params):
         self.section = section
         self.page = page
         self.region = region
@@ -283,7 +283,7 @@ class PageRenderer(metaclass=MediaDefiningClass):
         region_data = {'title': title, 'name': region, 'sections': []}
         for section in self.get_region_sections(region):
             renderer_cls = get_renderer(section, self.page)
-            renderer = renderer_cls(section, self.page, region, self.request, **self.params)
+            renderer = renderer_cls(section, self.request, self.page, region, **self.params)
             region_data['sections'].append(renderer)
         return region_data
 
